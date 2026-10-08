@@ -18,16 +18,16 @@ Stack: Next.js 14, Prisma, **Postgres**. Hosted on Vercel.
    | name | value |
    |---|---|
    | `DATABASE_URL` | pooled connection string |
-   | `DIRECT_URL` | direct connection string |
+   | `DATABASE_URL_UNPOOLED` | direct connection string |
    | `AUTH_SECRET` | a long random string, e.g. `openssl rand -hex 32`. **Required**: the app refuses to sign sessions in production without it. |
 
-   If you used Vercel's Neon integration, it creates differently named variables (`POSTGRES_PRISMA_URL`, `POSTGRES_URL_NON_POOLING`). Add `DATABASE_URL` and `DIRECT_URL` with those values.
+   If you used Vercel's Neon integration, it creates differently named variables (`POSTGRES_PRISMA_URL`, `POSTGRES_URL_NON_POOLING`). Add `DATABASE_URL` and `DATABASE_URL_UNPOOLED` with those values.
 4. **Deploy.** The build runs `prisma generate`, applies migrations (`prisma migrate deploy`) and builds the app. This creates the empty tables.
 5. **Seed the users and organisations once, from your own machine** (the seed is not run by Vercel). In a terminal in this repo:
 
    ```bash
    npm install
-   cp .env.example .env     # then put the SAME DATABASE_URL and DIRECT_URL as Vercel in .env
+   cp .env.example .env     # then put the SAME DATABASE_URL and DATABASE_URL_UNPOOLED as Vercel in .env
    # also set SEED_PASSWORD_ADMIN and SEED_PASSWORD_JUROR1 (and SEED_PASSWORD) in .env
    npm run db:seed
    ```
@@ -42,7 +42,7 @@ If login says "incorrect email or password", the seed was not run against the sa
 You need a Postgres database (a free Neon database works, or a local Postgres).
 
 ```bash
-cp .env.example .env     # fill DATABASE_URL, DIRECT_URL, AUTH_SECRET
+cp .env.example .env     # fill DATABASE_URL, DATABASE_URL_UNPOOLED, AUTH_SECRET
 npm install
 npm run setup            # applies migrations and seeds
 npm run dev              # http://localhost:3000

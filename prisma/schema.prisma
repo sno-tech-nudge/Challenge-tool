@@ -3,12 +3,12 @@ generator client {
 }
 
 // Postgres so it runs on Vercel (serverless has no writable disk for SQLite).
-// DATABASE_URL = pooled connection used at runtime; DIRECT_URL = direct connection used for migrations.
+// DATABASE_URL = pooled connection used at runtime; DATABASE_URL_UNPOOLED = direct connection (the name Neon uses) used for migrations.
 // With a single connection string (e.g. local Postgres) set both to the same value.
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 // role: ADMIN | JURY  (validated in src/lib/constants.ts)
