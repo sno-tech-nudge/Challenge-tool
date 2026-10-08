@@ -21,7 +21,7 @@ export default async function JuryOrgPage({ params }: { params: { id: string } }
   return (
     <Shell user={user}>
       <PageBanner
-        eyebrow={org.slot ? `jury review · slot ${org.slot}` : 'jury review'}
+        eyebrow={org.slot ? `aahaar bazaar challenge · jury review · slot ${org.slot}` : 'aahaar bazaar challenge · jury review'}
         title={org.name}
         subtitle={meta || undefined}
         actions={mine ? <Pill tone="good">you scored {mine.total}</Pill> : <Pill tone="warn">not scored yet</Pill>}

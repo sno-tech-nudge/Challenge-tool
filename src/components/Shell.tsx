@@ -16,9 +16,9 @@ export function Shell({ user, children }: { user: User; children: React.ReactNod
     <>
       <header className="header">
         <div className="header-left">
-          <Link href={home} className="brand" aria-label="midline review home">
-            <span className="brand-mark" aria-hidden="true">^</span>
-            midline review
+          <Link href={home} className="brand" aria-label="aahaar bazaar challenge home">
+            <span className="brand-mark" aria-hidden="true">A</span>
+            aahaar bazaar challenge
           </Link>
           <NavLinks items={items} />
         </div>

@@ -4,7 +4,7 @@ export type Role = (typeof ROLES)[number];
 export const VERDICTS = ['Y', 'N'] as const;
 export type Verdict = (typeof VERDICTS)[number];
 
-export const SESSION_COOKIE = 'midline_session';
+export const SESSION_COOKIE = 'aahaar_session';
 export const SESSION_SECONDS = 60 * 60 * 12; // 12 hours, then log in again
 
 // final score = ecociate (out of 60) + average jury total (out of 40)

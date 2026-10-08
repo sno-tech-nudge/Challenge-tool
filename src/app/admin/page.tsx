@@ -19,7 +19,7 @@ export default async function AdminSnapshot() {
   return (
     <Shell user={user}>
       <PageBanner
-        eyebrow="admin"
+        eyebrow="aahaar bazaar challenge · admin"
         title="snapshot"
         subtitle={`final score = ecociate (out of ${ECOCIATE_MAX}) + average jury score (out of ${JURY_MAX}). open an organisation for its score card and verdict.`}
       />

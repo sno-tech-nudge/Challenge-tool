@@ -27,7 +27,7 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
   return (
     <Shell user={user}>
       <PageBanner
-        eyebrow={org.slot ? `score card · slot ${org.slot}` : 'score card'}
+        eyebrow={org.slot ? `aahaar bazaar challenge · score card · slot ${org.slot}` : 'aahaar bazaar challenge · score card'}
         title={org.name}
         subtitle={meta || undefined}
         actions={org.verdict ? <Pill tone={org.verdict === 'Y' ? 'good' : 'bad'}>verdict: {org.verdict === 'Y' ? 'yes' : 'no'}</Pill> : <Pill tone="warn">verdict pending</Pill>}

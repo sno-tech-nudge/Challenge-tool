@@ -9,7 +9,7 @@ import { PARAMETERS } from '../src/lib/rubric';
 
 const prisma = new PrismaClient();
 
-const PASSWORD = process.env.SEED_PASSWORD ?? 'midline-dev-1234';
+const PASSWORD = process.env.SEED_PASSWORD ?? 'aahaar-dev-1234';
 
 const USERS = [
   { name: 'Admin', email: 'gaurangwadhawan3@gmail.com', role: 'ADMIN' },

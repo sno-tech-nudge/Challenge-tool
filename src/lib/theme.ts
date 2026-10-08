@@ -1,5 +1,5 @@
 export type Theme = 'light' | 'dark';
-const KEY = 'midline-theme';
+const KEY = 'aahaar-theme';
 
 export function readTheme(): Theme {
   try {

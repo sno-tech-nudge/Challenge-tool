@@ -14,7 +14,7 @@ export default async function JuryList() {
   return (
     <Shell user={user}>
       <PageBanner
-        eyebrow="jury review"
+        eyebrow="aahaar bazaar challenge · jury review"
         title="organisations"
         subtitle={`${done} of ${orgs.length} reviewed by you. open an organisation to read it and score it.`}
       />
