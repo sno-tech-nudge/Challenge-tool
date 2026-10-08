@@ -19,6 +19,11 @@ const USERS = [
   { name: 'Juror 4', email: 'juror4@example.test', role: 'JURY' },
 ];
 
+const OVERRIDES: Record<string, string> = {
+  'gaurangwadhawan3@gmail.com': 'SEED_PASSWORD_ADMIN',
+  'gaurang.wadhawan@thenudge.org': 'SEED_PASSWORD_JUROR1',
+};
+
 interface OrgInput {
   key: string;
   name: string;
@@ -35,8 +40,9 @@ interface OrgInput {
 }
 
 async function main() {
-  const passwordHash = hashPassword(PASSWORD);
   for (const u of USERS) {
+    // optional per-account override from .env, e.g. SEED_PASSWORD_ADMIN / SEED_PASSWORD_JUROR1
+    const passwordHash = hashPassword(process.env[OVERRIDES[u.email] ?? ''] || PASSWORD);
     await prisma.user.upsert({ where: { email: u.email }, create: { ...u, passwordHash }, update: { name: u.name, role: u.role, passwordHash } });
   }
 
