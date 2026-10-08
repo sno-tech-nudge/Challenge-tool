@@ -1,0 +1,31 @@
+{
+  "name": "midline-review",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit && node scripts/check-style.mjs",
+    "setup": "prisma migrate deploy && tsx prisma/seed.ts",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "tsx prisma/seed.ts",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@prisma/client": "5.18.0",
+    "lucide-react": "^0.436.0",
+    "next": "14.2.35",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "20.14.15",
+    "@types/react": "18.3.3",
+    "@types/react-dom": "18.3.0",
+    "prisma": "5.18.0",
+    "tsx": "4.16.5",
+    "typescript": "5.5.4"
+  }
+}

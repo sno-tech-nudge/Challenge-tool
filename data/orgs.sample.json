@@ -1,0 +1,11 @@
+[
+  { "key": "test-org-1", "name": "Test Organisation 1", "slot": "Day 1, 10:00-10:45", "sector": "sample sector a", "location": "sample city", "website": "https://example.test/1", "summary": "Fictional organisation used to test the tool.", "about": "Line one of a long description.\nLine two shows that line breaks are preserved.", "internalQueries": "- query one\n- query two", "internalSwot": "S: sample strength\nW: sample weakness\nO: sample opportunity\nT: sample threat", "ecociateScore": 41, "ecociateRemarks": "Sample reasoning for the externally fed score." },
+  { "key": "test-org-2", "name": "Test Organisation 2", "slot": "Day 1, 11:00-11:45", "sector": "sample sector b", "location": "sample city", "summary": "Fictional organisation.", "ecociateScore": 33 },
+  { "key": "test-org-3", "name": "Test Organisation 3", "slot": "Day 1, 12:00-12:45", "sector": "sample sector a", "summary": "Fictional organisation.", "ecociateScore": 48 },
+  { "key": "test-org-4", "name": "Test Organisation 4", "slot": "Day 1, 14:00-14:45", "sector": "sample sector c", "summary": "Fictional organisation." },
+  { "key": "test-org-5", "name": "Test Organisation 5", "slot": "Day 1, 15:00-15:45", "sector": "sample sector b", "summary": "Fictional organisation." },
+  { "key": "test-org-6", "name": "Test Organisation 6", "slot": "Day 2, 10:00-10:45", "sector": "sample sector c", "summary": "Fictional organisation." },
+  { "key": "test-org-7", "name": "Test Organisation 7", "slot": "Day 2, 11:00-11:45", "sector": "sample sector a", "summary": "Fictional organisation." },
+  { "key": "test-org-8", "name": "Test Organisation 8", "slot": "Day 2, 12:00-12:45", "sector": "sample sector b", "summary": "Fictional organisation." },
+  { "key": "test-org-9", "name": "Test Organisation 9", "slot": "Day 2, 14:00-14:45", "sector": "sample sector c", "summary": "Fictional organisation." }
+]

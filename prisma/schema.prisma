@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// role: ADMIN | JURY  (validated in src/lib/constants.ts)
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  role         String
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  scores JuryScore[]
+}
+
+model Org {
+  id   String @id @default(cuid())
+  key  String @unique // stable slug used by the data import
+  name String
+  slot String? // interview slot, display text e.g. "10 Nov, 10:00-10:45"
+
+  sector   String?
+  location String?
+  website  String?
+  summary  String? // short blurb shown in lists and at the top of the page
+  about    String? // long free text, whitespace preserved
+
+  // admin-written, shown read-only to jurors
+  internalQueries String?
+  internalSwot    String?
+
+  // external evaluator, fed in later as data: the score is stored already out of 60 (no
+  // conversion here), plus reasoning. null = not fed yet.
+  ecociateScore   Float?
+  ecociateRemarks String?
+
+  // admin final call: Y | N | null (undecided)
+  verdict        String?
+  verdictComment String?
+  verdictAt      DateTime?
+
+  createdAt DateTime @default(now())
+  scores    JuryScore[]
+}
+
+model JuryScore {
+  id        String   @id @default(cuid())
+  orgId     String
+  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  jurorId   String
+  juror     User     @relation(fields: [jurorId], references: [id])
+  // JSON array of { key, score, remarks } — keys come from src/lib/rubric.ts
+  entries   String
+  total     Float
+  updatedAt DateTime @updatedAt
+
+  @@unique([orgId, jurorId])
+}
