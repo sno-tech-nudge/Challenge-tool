@@ -26,7 +26,8 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
 
   return (
     <Shell user={user}>
-      <PageBanner
+      <div className="workspace">
+      <PageBanner compact
         eyebrow={org.slot ? `aahaar bazaar challenge · score card · slot ${org.slot}` : 'aahaar bazaar challenge · score card'}
         title={org.name}
         actions={org.verdict ? <Pill tone={org.verdict === 'Y' ? 'good' : 'bad'}>verdict: {org.verdict === 'Y' ? 'yes' : 'no'}</Pill> : <Pill tone="warn">verdict pending</Pill>}
@@ -34,8 +35,8 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
       <div className="wrap">
         <OrgPager base="/admin" baseLabel="snapshot" name={org.name} {...nav} />
 
-        <div className="grid2">
-          <div className="stack" style={{ minWidth: 0 }}>
+        <div className="split">
+          <div className="pane stack">
             <section className="card accent" id="details">
               <h2>organisation details</h2>
               {org.website && (
@@ -95,7 +96,7 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
             </section>
           </div>
 
-          <div className="sticky-col" style={{ minWidth: 0 }}>
+          <div className="pane">
             <div className="stack">
               <section className="card accent" id="scores">
                 <h2>scores</h2>
@@ -132,6 +133,7 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
             </div>
           </div>
         </div>
+      </div>
       </div>
     </Shell>
   );

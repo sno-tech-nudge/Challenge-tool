@@ -19,7 +19,8 @@ export default async function JuryOrgPage({ params }: { params: { id: string } }
 
   return (
     <Shell user={user}>
-      <PageBanner
+      <div className="workspace">
+      <PageBanner compact
         eyebrow={org.slot ? `aahaar bazaar challenge · jury review · slot ${org.slot}` : 'aahaar bazaar challenge · jury review'}
         title={org.name}
         actions={mine ? <Pill tone="good">you scored {mine.total}</Pill> : <Pill tone="warn">not scored yet</Pill>}
@@ -27,8 +28,8 @@ export default async function JuryOrgPage({ params }: { params: { id: string } }
       <div className="wrap">
         <OrgPager base="/jury" baseLabel="organisations" name={org.name} {...nav} />
 
-        <div className="grid2">
-          <div className="stack tall-left" style={{ minWidth: 0 }}>
+        <div className="split">
+          <div className="pane stack">
             <section className="card accent" id="details">
               <h2>organisation details</h2>
               {org.website && (
@@ -66,14 +67,15 @@ export default async function JuryOrgPage({ params }: { params: { id: string } }
             </section>
           </div>
 
-          <div className="sticky-col" style={{ minWidth: 0 }}>
+          <div className="pane">
           <section className="card accent" id="review">
             <h2>start review</h2>
-            <p className="hint" style={{ marginBottom: 'var(--space-4)' }}>score all 7 parameters. you can come back and edit until the panel closes.</p>
+            <p className="hint" style={{ marginBottom: 'var(--space-4)' }}>score all 7 parameters. you can come back and edit your scores at any time.</p>
             <ReviewForm orgId={org.id} existing={mine ? parseEntries(mine.entries) : []} />
           </section>
           </div>
         </div>
+      </div>
       </div>
     </Shell>
   );

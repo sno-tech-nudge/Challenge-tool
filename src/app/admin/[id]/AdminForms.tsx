@@ -23,7 +23,7 @@ function useOutcome(state: FormState, okText: string) {
 
 export function VerdictForm({ orgId, verdict, comment }: { orgId: string; verdict: string | null; comment: string }) {
   const [state, action] = useFormState<FormState, FormData>(setVerdictAction, {});
-  useOutcome(state, 'verdict saved');
+  useOutcome(state, 'verdict updated');
   const options: [string, string][] = [['Y', 'yes'], ['N', 'no'], ['', 'undecided']];
   return (
     <form action={action} className="stack">
@@ -50,7 +50,7 @@ export function VerdictForm({ orgId, verdict, comment }: { orgId: string; verdic
 
 export function EcociateForm({ orgId, score, remarks }: { orgId: string; score: number | null; remarks: string }) {
   const [state, action] = useFormState<FormState, FormData>(saveEcociateAction, {});
-  useOutcome(state, 'ecociate score saved');
+  useOutcome(state, 'ecociate score updated');
   return (
     <form action={action} className="stack">
       <input type="hidden" name="orgId" value={orgId} />

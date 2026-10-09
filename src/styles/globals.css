@@ -229,11 +229,6 @@ label { display: block; font-size: var(--fs-caption); font-weight: var(--fw-semi
 .tone-bad { color: var(--status-bad); }
 .dot { display: inline-block; width: 10px; height: 10px; margin-right: 6px; background: var(--border-strong); vertical-align: baseline; }
 .dot.tone-good { background: var(--status-good); } .dot.tone-mid { background: var(--status-mid); } .dot.tone-bad { background: var(--status-bad); }
-/* right-hand panel that stays in view while the left side scrolls */
-.sticky-col { position: sticky; top: calc(var(--header-h) + var(--space-4)); max-height: calc(100vh - var(--header-h) - var(--space-8)); overflow-y: auto; overscroll-behavior: contain; }
-/* gives the page enough scroll range that the sticky right panel stays pinned even when the details are short */
-@media (min-width: 861px) { .tall-left { min-height: calc(100vh - var(--header-h)); } }
-@media (max-width: 860px) { .sticky-col { position: static; max-height: none; overflow: visible; } }
 .big { font-size: 26px; font-weight: var(--fw-black); font-variant-numeric: tabular-nums; line-height: 1.1; }
 .big small { font-size: 13px; font-weight: var(--fw-semibold); color: var(--text-muted); }
 
@@ -290,6 +285,28 @@ label { display: block; font-size: var(--fs-caption); font-weight: var(--fw-semi
 .skeleton { background: linear-gradient(90deg, var(--border-subtle), var(--surface-tint), var(--border-subtle)); background-size: 200% 100%; animation: sk 1.2s linear infinite; height: 16px; }
 @keyframes sk { to { background-position: -200% 0; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* two-pane workspace for the organisation pages: on desktop the page itself does not scroll, the left
+   (details) and right (scores / review) panes scroll independently so neither moves the other */
+.banner.compact { padding: var(--space-5) var(--space-6); }
+.banner.compact h1 { font-size: 28px; }
+.banner.compact::before { border-top-width: 48px; border-right-width: 48px; }
+.banner.compact::after { border-bottom-width: 72px; border-left-width: 120px; }
+.split { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: var(--space-6); align-items: start; }
+.pane { min-width: 0; }
+@media (min-width: 861px) {
+  .workspace { height: calc(100vh - var(--header-h) - 2px); display: flex; flex-direction: column; overflow: hidden; }
+  .workspace .banner { flex-shrink: 0; }
+  .workspace .wrap { flex: 1; min-height: 0; width: 100%; display: flex; flex-direction: column; padding-top: var(--space-4); padding-bottom: var(--space-4); }
+  .workspace .pager { flex-shrink: 0; margin-bottom: var(--space-3); }
+  .workspace .split { flex: 1; min-height: 0; align-items: stretch; }
+  .workspace .pane { overflow-y: auto; overscroll-behavior: contain; padding-right: var(--space-2); scrollbar-gutter: stable; }
+}
+
+/* confirmation popup: appears in the middle of the screen, then fades away by itself */
+.popup { position: fixed; top: 50%; left: 50%; z-index: var(--z-toast); transform: translate(-50%, -50%); display: flex; align-items: center; gap: var(--space-3); min-width: 260px; max-width: calc(100% - 32px); padding: var(--space-5) var(--space-6); background: var(--surface-card); color: var(--text-primary); border: 1px solid var(--border-subtle); border-top: 4px solid var(--status-good); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28); font-weight: var(--fw-bold); font-size: 17px; animation: popup 1900ms var(--ease) forwards; pointer-events: none; }
+.popup .tick { width: 28px; height: 28px; display: grid; place-items: center; background: var(--status-good); color: #fff; flex-shrink: 0; }
+@keyframes popup { 0% { opacity: 0; transform: translate(-50%, -46%); } 12% { opacity: 1; transform: translate(-50%, -50%); } 80% { opacity: 1; transform: translate(-50%, -50%); } 100% { opacity: 0; transform: translate(-50%, -54%); } }
 
 /* printing and PDF export always use the light theme */
 @media print {

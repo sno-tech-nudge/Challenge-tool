@@ -71,6 +71,23 @@ export function SnapshotTable({ rows }: { rows: Row[] }) {
             <button key={v} type="button" aria-pressed={verdict === v} onClick={() => setVerdict(v)}>{label}</button>
           ))}
         </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <label htmlFor="sort-by" style={{ margin: 0 }}>sort by</label>
+          <select
+            id="sort-by"
+            value={`${sort.key}:${sort.dir}`}
+            onChange={(e) => {
+              const [key, dir] = e.target.value.split(':') as [SortKey, 'asc' | 'desc'];
+              setSort({ key, dir });
+            }}
+          >
+            <option value="name:asc">alphabetical (A to Z)</option>
+            <option value="name:desc">alphabetical (Z to A)</option>
+            <option value="final:desc">score (high to low)</option>
+            <option value="final:asc">score (low to high)</option>
+            {(sort.key === 'ecociate' || sort.key === 'juryAvg') && <option value={`${sort.key}:${sort.dir}`}>by column</option>}
+          </select>
+        </div>
         <span className="small muted">{visible.length} of {rows.length} shown</span>
       </div>
 

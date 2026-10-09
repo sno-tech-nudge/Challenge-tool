@@ -6,14 +6,16 @@ export function PageBanner({
   title,
   subtitle,
   actions,
+  compact,
 }: {
   eyebrow?: React.ReactNode;
   title: React.ReactNode;
   subtitle?: React.ReactNode;
   actions?: React.ReactNode;
+  compact?: boolean;
 }) {
   return (
-    <section className="banner">
+    <section className={`banner${compact ? ' compact' : ''}`}>
       <div className="banner-inner">
         <div style={{ minWidth: 0 }}>
           {eyebrow && <div className="eyebrow">{eyebrow}</div>}

@@ -20,7 +20,6 @@ export default async function AdminSnapshot() {
       <PageBanner
         eyebrow="aahaar bazaar challenge · admin"
         title="snapshot"
-        subtitle={`final score = ecociate (out of ${ECOCIATE_MAX}) + average jury score (out of ${JURY_MAX}). open an organisation for its score card and verdict.`}
       />
       <div className="wrap stack">
         <div className="grid3">

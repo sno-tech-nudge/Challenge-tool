@@ -36,7 +36,7 @@ export function ReviewForm({ orgId, existing }: { orgId: string; existing: Score
   // each submit produces a new state object: show the outcome once as a toast
   React.useEffect(() => {
     if (state.ok) {
-      toast('review saved');
+      toast(existing.length ? 'review updated' : 'review submitted');
       setDirty(false);
     } else if (state.error) {
       toast(state.error, 'error');
