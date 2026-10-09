@@ -30,13 +30,22 @@ export function Pill({ tone, children }: { tone?: 'good' | 'bad' | 'warn' | 'sol
   return <span className={`pill${tone ? ` ${tone}` : ''}`}>{children}</span>;
 }
 
-/** Horizontal score bar; colour follows the share of the maximum (>=70% green, >=50% amber). */
+export type ScoreTone = 'good' | 'mid' | 'bad';
+
+/** The one place the score colours are decided, as a share of the maximum: 71% and above green
+ *  (for the final score out of 100 that is 71 and above), 50 to below 71 yellow, below 50 red. */
+export function scoreTone(value: number, max: number): ScoreTone {
+  const pct = (value / max) * 100;
+  return pct >= 71 ? 'good' : pct >= 50 ? 'mid' : 'bad';
+}
+
+/** Horizontal score bar coloured by scoreTone. */
 export function ScoreBar({ value, max }: { value: number | null; max: number }) {
   if (value === null) return <span className="muted">-</span>;
   const pct = Math.max(0, Math.min(100, (value / max) * 100));
-  const tone = pct >= 70 ? '' : pct >= 50 ? 'warn' : 'bad';
+  const tone = scoreTone(value, max);
   return (
-    <div className={`bar ${tone}`} role="img" aria-label={`${value} out of ${max}`}>
+    <div className={`bar ${tone === 'good' ? '' : tone}`} role="img" aria-label={`${value} out of ${max}`}>
       <span style={{ width: `${pct}%` }} />
     </div>
   );

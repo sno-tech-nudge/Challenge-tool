@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Search, ChevronRight, ArrowDown, ArrowUp } from 'lucide-react';
 import { ECOCIATE_MAX, JURY_MAX, EXPECTED_JURORS } from '@/lib/constants';
-import { Pill, ScoreBar } from '@/components/ui';
+import { Pill, ScoreBar, scoreTone } from '@/components/ui';
 
 interface Row {
   id: string;
@@ -99,7 +99,7 @@ export function SnapshotTable({ rows }: { rows: Row[] }) {
                 <td className="num">{show(r.ecociate)}</td>
                 <td className="num">{show(r.juryAvg)}</td>
                 <td className="num">{r.juryCount} / {EXPECTED_JURORS}</td>
-                <td className="num"><strong>{show(r.final)}</strong></td>
+                <td className="num"><strong className={r.final === null ? undefined : `tone-${scoreTone(r.final, 100)}`}>{show(r.final)}</strong></td>
                 <td><ScoreBar value={r.final} max={100} /></td>
                 <td>{r.verdict ? <Pill tone={r.verdict === 'Y' ? 'good' : 'bad'}>{r.verdict === 'Y' ? 'yes' : 'no'}</Pill> : <span className="muted small">undecided</span>}</td>
                 <td><ChevronRight size={16} aria-hidden="true" color="var(--text-muted)" /></td>

@@ -1,6 +1,6 @@
 import { requireRole } from '@/lib/auth/session';
 import { listSnapshot, jurorProgress } from '@/lib/queries';
-import { ECOCIATE_MAX, JURY_MAX, EXPECTED_JURORS } from '@/lib/constants';
+import { ECOCIATE_MAX, JURY_MAX } from '@/lib/constants';
 import { Shell } from '@/components/Shell';
 import { PageBanner, Kpi } from '@/components/ui';
 import { SnapshotTable } from './SnapshotTable';
@@ -12,7 +12,6 @@ export default async function AdminSnapshot() {
   const [rows, progress] = await Promise.all([listSnapshot(), jurorProgress()]);
 
   const scored = rows.filter((r) => r.final !== null);
-  const avgFinal = scored.length ? Math.round((scored.reduce((s, r) => s + (r.final ?? 0), 0) / scored.length) * 10) / 10 : null;
   const decided = rows.filter((r) => r.verdict).length;
   const yes = rows.filter((r) => r.verdict === 'Y').length;
 
@@ -26,9 +25,7 @@ export default async function AdminSnapshot() {
       <div className="wrap stack">
         <div className="grid3">
           <Kpi label="organisations" value={rows.length} note={`${scored.length} fully scored`} />
-          <Kpi label="average final score" value={avgFinal ?? '-'} note="out of 100, fully scored orgs" />
           <Kpi label="verdicts given" value={`${decided} / ${rows.length}`} note={`${yes} yes, ${decided - yes} no`} />
-          <Kpi label="jury progress" value={`${progress.reduce((s, j) => s + j.scored, 0)} / ${rows.length * Math.max(progress.length, EXPECTED_JURORS)}`} note="reviews submitted" />
         </div>
 
         <div className="card accent">

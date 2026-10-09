@@ -35,6 +35,7 @@
   --status-good: #3f9142;
   --status-warn: #d9722e;
   --status-bad: #8f1d1d;
+  --status-mid: #d9a300; /* yellow band of the score colours */
 
   --font-sans: 'Mulish', 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
   --font-serif: 'Cormorant', Georgia, serif;
@@ -94,6 +95,7 @@
   --status-good: #6cc070;
   --status-warn: #e8a050;
   --status-bad: #ff8a80;
+  --status-mid: #f0c440;
 }
 
 /* ---------- base ---------- */
@@ -220,6 +222,18 @@ label { display: block; font-size: var(--fs-caption); font-weight: var(--fw-semi
 .bar > span { position: absolute; inset: 0 auto 0 0; background: var(--status-good); }
 .bar.warn > span { background: var(--status-warn); }
 .bar.bad > span { background: var(--status-bad); }
+.bar.mid > span { background: var(--status-mid); }
+/* score colours: 71 and above green, 50 to below 71 yellow, below 50 red */
+.tone-good { color: var(--status-good); }
+.tone-mid { color: var(--status-mid); }
+.tone-bad { color: var(--status-bad); }
+.dot { display: inline-block; width: 10px; height: 10px; margin-right: 6px; background: var(--border-strong); vertical-align: baseline; }
+.dot.tone-good { background: var(--status-good); } .dot.tone-mid { background: var(--status-mid); } .dot.tone-bad { background: var(--status-bad); }
+/* right-hand panel that stays in view while the left side scrolls */
+.sticky-col { position: sticky; top: calc(var(--header-h) + var(--space-4)); max-height: calc(100vh - var(--header-h) - var(--space-8)); overflow-y: auto; overscroll-behavior: contain; }
+/* gives the page enough scroll range that the sticky right panel stays pinned even when the details are short */
+@media (min-width: 861px) { .tall-left { min-height: calc(100vh - var(--header-h)); } }
+@media (max-width: 860px) { .sticky-col { position: static; max-height: none; overflow: visible; } }
 .big { font-size: 26px; font-weight: var(--fw-black); font-variant-numeric: tabular-nums; line-height: 1.1; }
 .big small { font-size: 13px; font-weight: var(--fw-semibold); color: var(--text-muted); }
 
