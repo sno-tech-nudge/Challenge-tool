@@ -9,8 +9,10 @@ export function ConfirmDialog({
   title,
   body,
   confirmLabel,
+  cancelLabel = 'cancel',
   danger,
   busy,
+  wide,
   onConfirm,
   onCancel,
 }: {
@@ -18,8 +20,10 @@ export function ConfirmDialog({
   title: string;
   body: React.ReactNode;
   confirmLabel: string;
+  cancelLabel?: string;
   danger?: boolean;
   busy?: boolean;
+  wide?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }) {
@@ -28,11 +32,11 @@ export function ConfirmDialog({
   return (
     <div className="overlay" data-open={open} aria-hidden={!open}>
       <div className="overlay-scrim" onClick={onCancel} />
-      <div ref={ref} className="dialog" role="alertdialog" aria-modal="true" aria-labelledby={titleId}>
+      <div ref={ref} className={`dialog${wide ? ' wide' : ''}`} role="alertdialog" aria-modal="true" aria-labelledby={titleId}>
         <h2 id={titleId}>{title}</h2>
         <div className="small" style={{ color: 'var(--text-secondary)' }}>{body}</div>
         <div className="dialog-actions">
-          <button type="button" className="btn secondary" onClick={onCancel} data-autofocus>cancel</button>
+          <button type="button" className="btn secondary" onClick={onCancel} data-autofocus>{cancelLabel}</button>
           <button type="button" className={`btn${danger ? ' danger' : ''}`} onClick={onConfirm} disabled={busy}>
             {busy ? 'working…' : confirmLabel}
           </button>

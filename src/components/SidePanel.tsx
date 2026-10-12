@@ -4,8 +4,22 @@ import React from 'react';
 import { X } from 'lucide-react';
 import { useOverlay } from './Overlay';
 
-/** Button that slides a panel in from the right. Closes on Esc, the X, or a click on the scrim. */
-export function SidePanel({ label, icon, title, children }: { label: string; icon?: React.ReactNode; title: string; children: React.ReactNode }) {
+/** Button that slides a panel in from the right. Closes on Esc, the X, or a click on the scrim.
+ *  Client components can pass a function as children to get a `close` callback (e.g. to shut the
+ *  panel after a successful save). */
+export function SidePanel({
+  label,
+  icon,
+  title,
+  children,
+  triggerClass = 'btn secondary sm',
+}: {
+  label: string;
+  icon?: React.ReactNode;
+  title: string;
+  children: React.ReactNode | ((close: () => void) => React.ReactNode);
+  triggerClass?: string;
+}) {
   const [open, setOpen] = React.useState(false);
   const close = React.useCallback(() => setOpen(false), []);
   const ref = useOverlay(open, close);
@@ -13,7 +27,7 @@ export function SidePanel({ label, icon, title, children }: { label: string; ico
 
   return (
     <>
-      <button type="button" className="btn secondary sm" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open}>
+      <button type="button" className={triggerClass} onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open}>
         {icon}
         <span className="btn-label">{label}</span>
       </button>
@@ -26,7 +40,7 @@ export function SidePanel({ label, icon, title, children }: { label: string; ico
               <X size={18} strokeLinejoin="miter" strokeLinecap="square" />
             </button>
           </div>
-          <div className="panel-body">{children}</div>
+          <div className="panel-body">{typeof children === 'function' ? children(close) : children}</div>
         </div>
       </div>
     </>

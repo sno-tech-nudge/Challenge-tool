@@ -5,6 +5,9 @@ Two views over one panel of organisations:
 - **jury** (`/jury`): login, list of organisations with interview slot and your own score, an organisation page (details, internal queries and SWOT, Ecociate score and remarks) and a "start review" panel with 7 scored parameters, remarks, and a total out of 40. A juror only ever sees their own scores.
 - **admin** (`/admin`): login, a snapshot table (Ecociate /60, jury average /40, final /100, Y/N verdict), and a score card per organisation with every juror's scores side by side, the Ecociate score and reasoning (fed by the admin), and a final verdict with rationale that feeds the snapshot.
 
+- **settings** (admin only, `/admin/settings`): **team** lists everyone who can sign in. Add a member with a name, a login id (email) and a password (there is a generate button), edit their name or id, reset their password, or remove them. A member who has submitted reviews cannot be removed, so their scores are never lost. **Activity log** records who submitted, updated or cleared a review, changed a verdict, edited the Ecociate score, or changed a team member, with the time in India time. Passwords are never written to the log.
+- Before a juror's review is saved, a summary of all 7 scores and the total is shown to confirm.
+
 Final score = Ecociate (already out of 60, entered as is) + average of submitted jury totals (out of 40). It shows `-` until both parts exist.
 
 Stack: Next.js 14, Prisma, **Postgres**. Hosted on Vercel.

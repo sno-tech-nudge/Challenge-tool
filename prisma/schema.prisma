@@ -66,3 +66,18 @@ model JuryScore {
 
   @@unique([orgId, jurorId])
 }
+
+// Append-only record of who did what. actorId / orgId are plain text (no foreign keys) on purpose,
+// so the history survives a member or organisation being removed; names are copied in as well.
+model ActivityLog {
+  id        String   @id @default(cuid())
+  at        DateTime @default(now())
+  actorId   String?
+  actorName String
+  action    String // see ACTIVITY_ACTIONS in src/lib/activity.ts
+  orgId     String?
+  orgName   String?
+  detail    String?
+
+  @@index([at])
+}

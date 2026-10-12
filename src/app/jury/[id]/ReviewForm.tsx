@@ -21,9 +21,17 @@ export function ReviewForm({ orgId, existing }: { orgId: string; existing: Score
   const byKey = new Map(existing.map((e) => [e.key, e]));
   const initialScores = Object.fromEntries(PARAMETERS.map((p) => [p.key, byKey.has(p.key) ? String(byKey.get(p.key)!.score) : '']));
   const [scores, setScores] = React.useState<Record<string, string>>(initialScores);
+  const initialRemarks = Object.fromEntries(PARAMETERS.map((p) => [p.key, byKey.get(p.key)?.remarks ?? '']));
+  const [remarks, setRemarks] = React.useState<Record<string, string>>(initialRemarks);
   const [dirty, setDirty] = React.useState(false);
   const [confirmClear, setConfirmClear] = React.useState(false);
   const [clearing, setClearing] = React.useState(false);
+  // every submit goes through a summary dialog first; confirming re-submits the form once
+  const formRef = React.useRef<HTMLFormElement>(null);
+  const confirmed = React.useRef(false);
+  // whether this save is an update, captured at submit time (the page refreshes before the outcome toast)
+  const wasUpdate = React.useRef(false);
+  const [summaryOpen, setSummaryOpen] = React.useState(false);
 
   const filled = PARAMETERS.filter((p) => scores[p.key] !== '').length;
   const total = PARAMETERS.reduce((s, p) => s + (Number(scores[p.key]) || 0), 0);
@@ -36,7 +44,7 @@ export function ReviewForm({ orgId, existing }: { orgId: string; existing: Score
   // each submit produces a new state object: show the outcome once as a toast
   React.useEffect(() => {
     if (state.ok) {
-      toast(existing.length ? 'review updated' : 'review submitted');
+      toast(wasUpdate.current ? 'review updated' : 'review submitted');
       setDirty(false);
     } else if (state.error) {
       toast(state.error, 'error');
@@ -55,6 +63,22 @@ export function ReviewForm({ orgId, existing }: { orgId: string; existing: Score
     return () => window.removeEventListener('beforeunload', warn);
   }, [dirty]);
 
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    if (confirmed.current) {
+      confirmed.current = false;
+      return;
+    }
+    e.preventDefault();
+    if (filled === PARAMETERS.length && !anyInvalid) setSummaryOpen(true);
+  }
+
+  function confirmSubmit() {
+    confirmed.current = true;
+    wasUpdate.current = existing.length > 0;
+    setSummaryOpen(false);
+    formRef.current?.requestSubmit();
+  }
+
   async function clearReview() {
     setClearing(true);
     const res = await clearReviewAction(orgId);
@@ -62,6 +86,7 @@ export function ReviewForm({ orgId, existing }: { orgId: string; existing: Score
     setConfirmClear(false);
     if (res.ok) {
       setScores(Object.fromEntries(PARAMETERS.map((p) => [p.key, ''])));
+      setRemarks(Object.fromEntries(PARAMETERS.map((p) => [p.key, ''])));
       setDirty(false);
       toast('review cleared');
       router.refresh();
@@ -70,7 +95,7 @@ export function ReviewForm({ orgId, existing }: { orgId: string; existing: Score
 
   return (
     <>
-      <form action={action} onChange={() => setDirty(true)} key={existing.length ? 'saved' : 'new'}>
+      <form ref={formRef} action={action} onSubmit={onSubmit} onChange={() => setDirty(true)}>
         <input type="hidden" name="orgId" value={orgId} />
         {PARAMETERS.map((p, i) => {
           const pct = Math.min(100, ((Number(scores[p.key]) || 0) / p.max) * 100);
@@ -102,7 +127,7 @@ export function ReviewForm({ orgId, existing }: { orgId: string; existing: Score
                 </div>
                 <div style={{ flex: '1 1 200px' }}>
                   <label htmlFor={`remarks_${p.key}`}>remarks</label>
-                  <textarea id={`remarks_${p.key}`} name={`remarks_${p.key}`} defaultValue={byKey.get(p.key)?.remarks ?? ''} style={{ minHeight: 38 }} />
+                  <textarea id={`remarks_${p.key}`} name={`remarks_${p.key}`} value={remarks[p.key]} onChange={(e) => setRemarks({ ...remarks, [p.key]: e.target.value })} style={{ minHeight: 38 }} />
                 </div>
               </div>
               {invalid(p.key, p.max) && <p className="err">enter a number from 0 to {p.max}</p>}
@@ -127,6 +152,35 @@ export function ReviewForm({ orgId, existing }: { orgId: string; existing: Score
           </div>
         </div>
       </form>
+
+      <ConfirmDialog
+        open={summaryOpen}
+        wide
+        title={existing.length ? 'update your review?' : 'submit your review?'}
+        body={
+          <>
+            <table className="summary">
+              <tbody>
+                {PARAMETERS.map((p, i) => (
+                  <tr key={p.key}>
+                    <td>{i + 1}. {p.label}</td>
+                    <td className="num"><strong>{Number(scores[p.key]) || 0}</strong> <span className="muted">/ {p.max}</span></td>
+                  </tr>
+                ))}
+                <tr className="total">
+                  <td>total</td>
+                  <td className="num"><strong>{total}</strong> <span className="muted">/ {JURY_MAX}</span></td>
+                </tr>
+              </tbody>
+            </table>
+            <p className="hint" style={{ marginTop: 'var(--space-3)' }}>you can edit your scores again later if you need to.</p>
+          </>
+        }
+        confirmLabel={existing.length ? 'confirm and update' : 'confirm and submit'}
+        cancelLabel="go back"
+        onConfirm={confirmSubmit}
+        onCancel={() => setSummaryOpen(false)}
+      />
 
       <ConfirmDialog
         open={confirmClear}

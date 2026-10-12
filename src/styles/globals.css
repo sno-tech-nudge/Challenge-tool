@@ -348,6 +348,18 @@ select:hover { border-color: var(--accent-600); }
   .toolbar .end { margin-left: 0; }
 }
 
+/* ---------- settings: tabs, password row, summary table ---------- */
+.tabs { display: flex; gap: var(--space-5); border-bottom: 1px solid var(--border-subtle); }
+.tabs a { padding: 0 2px var(--space-3); font-size: var(--fs-small); font-weight: var(--fw-semibold); color: var(--text-secondary); text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; text-transform: lowercase; }
+.tabs a:hover { color: var(--text-primary); }
+.tabs a[aria-current='page'] { color: var(--text-accent); border-bottom-color: var(--accent-600); }
+.pw-row { display: flex; gap: var(--space-2); align-items: center; }
+.pw-row input { flex: 1; min-width: 0; width: auto; }
+.dialog.wide { width: 520px; }
+table.summary { width: 100%; margin-top: var(--space-3); border: 1px solid var(--border-subtle); }
+table.summary td { padding: 8px 12px; white-space: normal; }
+table.summary tr.total td { background: var(--surface-tint); font-size: 15px; }
+
 /* printing and PDF export always use the light theme */
 @media print {
   :root[data-theme='dark'] { --surface-canvas: #fff; --surface-card: #fff; --surface-tint: #f0f8f3; --text-primary: #1f1f1f; --text-secondary: #4a4a4a; --text-muted: #777777; --border-subtle: #e3e0dc; --border-strong: #bdb8b2; }

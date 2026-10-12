@@ -10,7 +10,12 @@ import { NavLinks } from './NavLinks';
 export function Shell({ user, children }: { user: User; children: React.ReactNode }) {
   const isAdmin = user.role === 'ADMIN';
   const home = isAdmin ? '/admin' : '/jury';
-  const items = isAdmin ? [{ href: '/admin', label: 'snapshot' }] : [{ href: '/jury', label: 'organisations' }];
+  const items = isAdmin
+    ? [
+        { href: '/admin', label: 'snapshot' },
+        { href: '/admin/settings', label: 'settings' },
+      ]
+    : [{ href: '/jury', label: 'organisations' }];
 
   return (
     <>

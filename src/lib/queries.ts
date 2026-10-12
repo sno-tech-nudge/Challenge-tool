@@ -85,3 +85,12 @@ export async function jurorProgress() {
   });
   return jurors.map((j) => ({ id: j.id, name: j.name, scored: j._count.scores }));
 }
+
+/** Everyone who can sign in, with how many reviews each has submitted. */
+export async function listTeam() {
+  const users = await prisma.user.findMany({
+    orderBy: [{ role: 'asc' }, { name: 'asc' }],
+    select: { id: true, name: true, email: true, role: true, _count: { select: { scores: true } } },
+  });
+  return users.map((u) => ({ id: u.id, name: u.name, email: u.email, role: u.role, reviews: u._count.scores }));
+}
