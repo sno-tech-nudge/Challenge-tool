@@ -13,7 +13,7 @@ export function SidePanel({ label, icon, title, children }: { label: string; ico
 
   return (
     <>
-      <button type="button" className="btn secondary" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open}>
+      <button type="button" className="btn secondary sm" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open}>
         {icon}
         <span className="btn-label">{label}</span>
       </button>

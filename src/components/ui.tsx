@@ -43,7 +43,7 @@ export function scoreTone(value: number, max: number): ScoreTone {
 
 /** Horizontal score bar coloured by scoreTone. */
 export function ScoreBar({ value, max }: { value: number | null; max: number }) {
-  if (value === null) return <span className="muted">-</span>;
+  if (value === null) return <div className="bar" aria-hidden="true" />;
   const pct = Math.max(0, Math.min(100, (value / max) * 100));
   const tone = scoreTone(value, max);
   return (

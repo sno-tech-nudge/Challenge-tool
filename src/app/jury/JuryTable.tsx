@@ -44,7 +44,7 @@ export function JuryTable({ orgs, done }: { orgs: Row[]; done: number }) {
       </div>
 
       <div className="toolbar">
-        <div style={{ position: 'relative', flex: '1 1 220px', maxWidth: 360 }}>
+        <div className="grow">
           <Search size={14} aria-hidden="true" style={{ position: 'absolute', left: 10, top: 12, color: 'var(--text-muted)' }} />
           <input type="search" placeholder="search organisation" aria-label="search organisations" value={q} onChange={(e) => setQ(e.target.value)} style={{ width: '100%', paddingLeft: 32 }} />
         </div>

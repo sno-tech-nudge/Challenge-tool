@@ -61,8 +61,8 @@ export function SnapshotTable({ rows }: { rows: Row[] }) {
 
   return (
     <>
-      <div className="toolbar" style={{ marginBottom: 0 }}>
-        <div style={{ position: 'relative', flex: '1 1 220px', maxWidth: 360 }}>
+      <div className="toolbar">
+        <div className="grow">
           <Search size={14} aria-hidden="true" style={{ position: 'absolute', left: 10, top: 12, color: 'var(--text-muted)' }} />
           <input type="search" placeholder="search organisation" aria-label="search organisations" value={q} onChange={(e) => setQ(e.target.value)} style={{ width: '100%', paddingLeft: 32 }} />
         </div>
@@ -71,8 +71,8 @@ export function SnapshotTable({ rows }: { rows: Row[] }) {
             <button key={v} type="button" aria-pressed={verdict === v} onClick={() => setVerdict(v)}>{label}</button>
           ))}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-          <label htmlFor="sort-by" style={{ margin: 0 }}>sort by</label>
+        <div className="end">
+          <label htmlFor="sort-by">sort by</label>
           <select
             id="sort-by"
             value={`${sort.key}:${sort.dir}`}
@@ -88,7 +88,6 @@ export function SnapshotTable({ rows }: { rows: Row[] }) {
             {(sort.key === 'ecociate' || sort.key === 'juryAvg') && <option value={`${sort.key}:${sort.dir}`}>by column</option>}
           </select>
         </div>
-        <span className="small muted">{visible.length} of {rows.length} shown</span>
       </div>
 
       <div className="card scroll" style={{ padding: 0 }}>

@@ -2,7 +2,7 @@ import { requireRole } from '@/lib/auth/session';
 import { listSnapshot, jurorProgress } from '@/lib/queries';
 import { ECOCIATE_MAX, JURY_MAX } from '@/lib/constants';
 import { Shell } from '@/components/Shell';
-import { PageBanner, Kpi } from '@/components/ui';
+import { PageBanner } from '@/components/ui';
 import { SnapshotTable } from './SnapshotTable';
 
 export const dynamic = 'force-dynamic';
@@ -22,25 +22,33 @@ export default async function AdminSnapshot() {
         title="snapshot"
       />
       <div className="wrap stack">
-        <div className="grid3">
-          <Kpi label="organisations" value={rows.length} note={`${scored.length} fully scored`} />
-          <Kpi label="verdicts given" value={`${decided} / ${rows.length}`} note={`${yes} yes, ${decided - yes} no`} />
-        </div>
-
-        <div className="card accent">
-          <div className="row" style={{ marginBottom: 'var(--space-3)' }}><h2 style={{ margin: 0 }}>juror progress</h2></div>
-          <div className="grid3">
-            {progress.map((j) => (
-              <div key={j.id}>
-                <div className="row small"><strong>{j.name}</strong><span className="muted">{j.scored} of {rows.length}</span></div>
-                <div className="bar" style={{ marginTop: 6 }} role="progressbar" aria-valuemin={0} aria-valuemax={rows.length} aria-valuenow={j.scored} aria-label={`${j.name} progress`}>
-                  <span style={{ width: `${rows.length ? (j.scored / rows.length) * 100 : 0}%` }} />
-                </div>
-              </div>
-            ))}
-            {progress.length === 0 && <p className="muted small">no jurors yet.</p>}
+        <section className="card overview" aria-label="overview">
+          <div className="stat">
+            <span className="label">organisations</span>
+            <span className="value">{rows.length}</span>
+            <span className="note">{scored.length} fully scored</span>
           </div>
-        </div>
+          <div className="stat">
+            <span className="label">verdicts given</span>
+            <span className="value">{decided} / {rows.length}</span>
+            <span className="note">{yes} yes, {decided - yes} no</span>
+          </div>
+          <div className="jurors">
+            <span className="label">juror progress</span>
+            <div className="jurors-grid">
+              {progress.map((j) => (
+                <div className="juror" key={j.id}>
+                  <strong>{j.name}</strong>
+                  <div className="bar" role="progressbar" aria-valuemin={0} aria-valuemax={rows.length} aria-valuenow={j.scored} aria-label={`${j.name} progress`}>
+                    <span style={{ width: `${rows.length ? (j.scored / rows.length) * 100 : 0}%` }} />
+                  </div>
+                  <span className="count">{j.scored}/{rows.length}</span>
+                </div>
+              ))}
+              {progress.length === 0 && <p className="muted small">no jurors yet.</p>}
+            </div>
+          </div>
+        </section>
 
         <SnapshotTable rows={rows} />
       </div>
