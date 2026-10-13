@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation';
-import { ExternalLink } from 'lucide-react';
 import { requireRole } from '@/lib/auth/session';
 import { getOrgForAdmin, listJurors, orgNeighbours } from '@/lib/queries';
 import { PARAMETERS, parseEntries } from '@/lib/rubric';
@@ -8,6 +7,7 @@ import { ECOCIATE_MAX, JURY_MAX } from '@/lib/constants';
 import { Shell } from '@/components/Shell';
 import { PageBanner, Pill, ScoreBar, scoreTone } from '@/components/ui';
 import { OrgPager } from '@/components/OrgPager';
+import { OrgDetails } from '@/components/OrgDetails';
 import { VerdictForm, EcociateForm } from './AdminForms';
 
 export const dynamic = 'force-dynamic';
@@ -39,15 +39,7 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
           <div className="pane stack">
             <section className="card accent" id="details">
               <h2>organisation details</h2>
-              {org.website && (
-                <p className="small" style={{ marginBottom: 'var(--space-3)' }}>
-                  <a href={org.website} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
-                    {org.website} <ExternalLink size={13} aria-hidden="true" />
-                  </a>
-                </p>
-              )}
-              {org.summary && <p className="pre" style={{ fontWeight: 600 }}>{org.summary}</p>}
-              {org.about ? <p className="pre" style={{ marginTop: 'var(--space-3)' }}>{org.about}</p> : !org.summary && <p className="muted">no details added yet.</p>}
+              <OrgDetails website={org.website} idPrefix="a" />
             </section>
             <section className="card" id="internal">
               <h2>internal remarks</h2>
