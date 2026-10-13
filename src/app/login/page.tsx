@@ -12,18 +12,6 @@ function HouseIcon() {
 export default function LoginPage() {
   return (
     <div className="login-split">
-      <section className="login-left">
-        <div className="login-card">
-          <div className="brand" style={{ marginBottom: 'var(--space-6)' }}>
-            <span className="brand-mark" aria-hidden="true">A</span>
-            the aahaar bazaar challenge
-          </div>
-          <h1 style={{ fontSize: 30, textTransform: 'lowercase' }}>welcome <span className="em">back</span></h1>
-          <p className="small muted" style={{ margin: 'var(--space-2) 0 var(--space-6)' }}>sign in with your email and password.</p>
-          <LoginForm />
-        </div>
-      </section>
-
       <aside className="login-right" aria-label="about the challenge">
         <div className="dp-logo" aria-label="the delta prize">
           <HouseIcon />
@@ -42,6 +30,18 @@ export default function LoginPage() {
 
         <p className="dp-tagline">Her recipe. Your tech. One massive opportunity.</p>
       </aside>
+
+      <section className="login-left">
+        <div className="login-card">
+          <div className="brand" style={{ marginBottom: 'var(--space-6)' }}>
+            <span className="brand-mark" aria-hidden="true">A</span>
+            the aahaar bazaar challenge
+          </div>
+          <h1 style={{ fontSize: 30, textTransform: 'lowercase' }}>welcome <span className="em">back</span></h1>
+          <p className="small muted" style={{ margin: 'var(--space-2) 0 var(--space-6)' }}>sign in with your email and password.</p>
+          <LoginForm />
+        </div>
+      </section>
     </div>
   );
 }
