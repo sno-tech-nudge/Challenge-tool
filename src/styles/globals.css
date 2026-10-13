@@ -278,10 +278,6 @@ label { display: block; font-size: var(--fs-caption); font-weight: var(--fw-semi
 /* ---------- misc ---------- */
 .guide-item { border-top: 1px solid var(--border-subtle); padding: var(--space-4) 0; }
 .guide-item:first-child { border-top: none; padding-top: 0; }
-.login-wrap { min-height: 100vh; display: grid; place-items: center; padding: var(--space-6); background: var(--surface-canvas); position: relative; overflow: hidden; }
-.login-wrap::before { content: ''; position: absolute; top: 0; left: 0; border-top: 160px solid var(--accent-700); border-right: 160px solid transparent; }
-.login-wrap::after { content: ''; position: absolute; right: 0; bottom: 0; border-bottom: 240px solid var(--accent-100); border-left: 340px solid transparent; }
-.login-card { position: relative; z-index: 1; width: 380px; max-width: 100%; background: var(--surface-card); border: 1px solid var(--border-subtle); border-top: 4px solid var(--accent-600); padding: var(--space-8); }
 .skeleton { background: linear-gradient(90deg, var(--border-subtle), var(--surface-tint), var(--border-subtle)); background-size: 200% 100%; animation: sk 1.2s linear infinite; height: 16px; }
 @keyframes sk { to { background-position: -200% 0; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
@@ -366,6 +362,28 @@ table.compact th, table.compact td { padding: 8px 10px; }
 table.compact th:first-child, table.compact td:first-child { padding-left: var(--space-4); white-space: normal; }
 table.compact th:last-child, table.compact td:last-child { padding-right: var(--space-4); }
 table.compact td .pre { max-width: 90px; }
+
+/* ---------- login: form on the left, challenge poster on the right ---------- */
+.login-split { min-height: 100vh; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); background: var(--surface-canvas); }
+.login-left { display: flex; align-items: center; justify-content: center; min-width: 0; padding: var(--space-8) var(--space-6); }
+.login-card { width: min(380px, 100%); min-width: 0; }
+.login-right { background: #730000; color: #fff; padding: clamp(32px, 5vw, 64px); display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-10); min-width: 0; }
+.dp-logo { display: flex; align-items: baseline; gap: 0.12em; font-size: clamp(30px, 3.4vw, 46px); font-weight: var(--fw-light); letter-spacing: -0.01em; line-height: 1; }
+.dp-house { width: 0.95em; height: 0.95em; align-self: center; margin-right: 0.28em; }
+.dp-caret { font-weight: var(--fw-regular); }
+.dp-prize { font-weight: var(--fw-light); font-size: 0.82em; margin-left: 0.2em; }
+.dp-headline { display: flex; flex-direction: column; line-height: 0.92; letter-spacing: -0.02em; }
+.dp-small { font-size: clamp(30px, 3.6vw, 52px); font-weight: var(--fw-light); margin-bottom: 0.1em; }
+.dp-big { font-size: clamp(64px, 9.5vw, 140px); font-weight: var(--fw-black); }
+.dp-mid { font-size: clamp(44px, 6vw, 88px); font-weight: var(--fw-black); margin-top: 0.08em; }
+.dp-tagline { font-size: clamp(16px, 1.7vw, 24px); font-weight: var(--fw-semibold); line-height: 1.3; max-width: 30em; }
+@media (max-width: 860px) {
+  .login-split { grid-template-columns: minmax(0, 1fr); }
+  .login-right { order: -1; gap: var(--space-6); padding: var(--space-6) var(--space-5); }
+  .dp-big { font-size: clamp(48px, 16vw, 84px); }
+  .dp-mid { font-size: clamp(34px, 11vw, 60px); }
+  .login-left { padding: var(--space-6) var(--space-5) var(--space-10); }
+}
 
 /* printing and PDF export always use the light theme */
 @media print {
