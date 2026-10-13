@@ -369,7 +369,6 @@ table.compact td .pre { max-width: 90px; }
 .login-card { width: min(380px, 100%); min-width: 0; }
 .login-right { background: #730000; color: #fff; padding: clamp(32px, 5vw, 64px); display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-10); min-width: 0; }
 .dp-logo { display: flex; align-items: baseline; gap: 0.12em; font-size: clamp(30px, 3.4vw, 46px); font-weight: var(--fw-light); letter-spacing: -0.01em; line-height: 1; }
-.dp-house { width: 0.95em; height: 0.95em; align-self: center; margin-right: 0.28em; }
 .dp-caret { font-weight: var(--fw-regular); }
 .dp-prize { font-weight: var(--fw-light); font-size: 0.82em; margin-left: 0.2em; }
 .dp-headline { display: flex; flex-direction: column; line-height: 0.92; letter-spacing: -0.02em; }

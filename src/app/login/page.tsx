@@ -1,20 +1,10 @@
 import { LoginForm } from './LoginForm';
 
-/** House icon from the delta prize wordmark, drawn as one path so it scales with the text. */
-function HouseIcon() {
-  return (
-    <svg className="dp-house" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M12 2.5 3.5 9.2V21h6.2v-6.4a2.3 2.3 0 0 1 4.6 0V21h6.2V9.2z" fill="currentColor" />
-    </svg>
-  );
-}
-
 export default function LoginPage() {
   return (
     <div className="login-split">
       <aside className="login-right" aria-label="about the challenge">
         <div className="dp-logo" aria-label="the delta prize">
-          <HouseIcon />
           <span className="dp-the">the</span>
           <span className="dp-caret">^</span>
           <span className="dp-delta">delta</span>
