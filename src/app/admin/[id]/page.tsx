@@ -28,14 +28,14 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
     <Shell user={user}>
       <div className="workspace">
       <PageBanner compact
-        eyebrow={org.slot ? `aahaar bazaar challenge · score card · slot ${org.slot}` : 'aahaar bazaar challenge · score card'}
+        eyebrow={org.slot ? `the aahaar bazaar challenge · score card · slot ${org.slot}` : 'the aahaar bazaar challenge · score card'}
         title={org.name}
         actions={org.verdict ? <Pill tone={org.verdict === 'Y' ? 'good' : 'bad'}>verdict: {org.verdict === 'Y' ? 'yes' : 'no'}</Pill> : <Pill tone="warn">verdict pending</Pill>}
       />
       <div className="wrap">
         <OrgPager base="/admin" baseLabel="snapshot" name={org.name} {...nav} />
 
-        <div className="split">
+        <div className="split even">
           <div className="pane stack">
             <section className="card accent" id="details">
               <h2>organisation details</h2>
@@ -55,38 +55,6 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
               <p className="pre">{org.internalQueries || <span className="muted">none</span>}</p>
               <h3>swot</h3>
               <p className="pre">{org.internalSwot || <span className="muted">none</span>}</p>
-            </section>
-            <section className="card scroll" id="jury" style={{ padding: 0 }}>
-              <div style={{ padding: 'var(--space-5) var(--space-5) var(--space-3)' }}><h2 style={{ margin: 0 }}>jury scores by juror</h2></div>
-              <table>
-                <thead>
-                  <tr>
-                    <th>parameter</th><th className="num">max</th>
-                    {jurors.map((j) => <th key={j.id} className="num">{j.name}</th>)}
-                  </tr>
-                </thead>
-                <tbody>
-                  {PARAMETERS.map((p) => (
-                    <tr key={p.key}>
-                      <td>{p.label}</td>
-                      <td className="num muted">{p.max}</td>
-                      {jurors.map((j) => {
-                        const e = byJuror.get(j.id)?.entries.get(p.key);
-                        return (
-                          <td key={j.id} className="num" style={{ minWidth: 110 }}>
-                            {e ? e.score : <span className="muted">-</span>}
-                            {e?.remarks && <div className="muted pre small" style={{ textAlign: 'left', marginTop: 2 }}>{e.remarks}</div>}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                  <tr style={{ background: 'var(--surface-tint)' }}>
-                    <td><strong>total</strong></td><td className="num muted">{JURY_MAX}</td>
-                    {jurors.map((j) => <td key={j.id} className="num"><strong>{show(byJuror.get(j.id)?.total ?? null)}</strong></td>)}
-                  </tr>
-                </tbody>
-              </table>
             </section>
 
             <section className="card accent" id="verdict">
@@ -130,6 +98,38 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
                 <h2>ecociate score and reasoning</h2>
                 <EcociateForm orgId={org.id} score={org.ecociateScore} remarks={org.ecociateRemarks ?? ''} />
               </section>
+            <section className="card scroll" id="jury" style={{ padding: 0 }}>
+              <div style={{ padding: 'var(--space-5) var(--space-5) var(--space-3)' }}><h2 style={{ margin: 0 }}>jury scores by juror</h2></div>
+              <table className="compact">
+                <thead>
+                  <tr>
+                    <th>parameter</th><th className="num">max</th>
+                    {jurors.map((j) => <th key={j.id} className="num">{j.name}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {PARAMETERS.map((p) => (
+                    <tr key={p.key}>
+                      <td>{p.label}</td>
+                      <td className="num muted">{p.max}</td>
+                      {jurors.map((j) => {
+                        const e = byJuror.get(j.id)?.entries.get(p.key);
+                        return (
+                          <td key={j.id} className="num">
+                            {e ? e.score : <span className="muted">-</span>}
+                            {e?.remarks && <div className="muted pre small" style={{ textAlign: 'left', marginTop: 2 }}>{e.remarks}</div>}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                  <tr style={{ background: 'var(--surface-tint)' }}>
+                    <td><strong>total</strong></td><td className="num muted">{JURY_MAX}</td>
+                    {jurors.map((j) => <td key={j.id} className="num"><strong>{show(byJuror.get(j.id)?.total ?? null)}</strong></td>)}
+                  </tr>
+                </tbody>
+              </table>
+            </section>
             </div>
           </div>
         </div>

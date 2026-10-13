@@ -1,4 +1,4 @@
-# aahaar bazaar challenge (raw version)
+# the aahaar bazaar challenge (raw version)
 
 Two views over one panel of organisations:
 

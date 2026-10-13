@@ -18,7 +18,7 @@ export default async function AdminSnapshot() {
   return (
     <Shell user={user}>
       <PageBanner
-        eyebrow="aahaar bazaar challenge · admin"
+        eyebrow="the aahaar bazaar challenge · admin"
         title="snapshot"
       />
       <div className="wrap stack">

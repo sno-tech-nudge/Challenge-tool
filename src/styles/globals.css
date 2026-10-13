@@ -145,7 +145,7 @@ h1, h2, h3 { font-weight: var(--fw-bold); line-height: 1.2; letter-spacing: -0.0
 .banner::after { content: ''; position: absolute; right: 0; bottom: 0; border-bottom: 84px solid var(--accent-100); border-left: 140px solid transparent; }
 :root[data-theme='dark'] .banner::after { border-bottom-color: var(--surface-tint); }
 .banner-inner { position: relative; z-index: 1; max-width: var(--container); margin: 0 auto; display: flex; gap: var(--space-6); justify-content: space-between; align-items: flex-end; flex-wrap: wrap; padding-left: var(--space-6); }
-.eyebrow { font-size: var(--fs-caption); font-weight: var(--fw-bold); letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-accent); margin-bottom: var(--space-2); }
+.eyebrow { font-size: var(--fs-caption); font-weight: var(--fw-bold); letter-spacing: 0.03em; color: var(--text-accent); margin-bottom: var(--space-2); }
 .banner h1 { font-size: var(--fs-h1); overflow-wrap: anywhere; }
 .banner .sub { color: var(--text-secondary); font-weight: var(--fw-light); font-size: 15px; margin-top: var(--space-1); max-width: 620px; }
 .banner-actions { display: flex; gap: var(--space-3); flex-wrap: wrap; align-items: center; }
@@ -294,6 +294,7 @@ label { display: block; font-size: var(--fs-caption); font-weight: var(--fw-semi
 .banner.compact::after { border-bottom-width: 72px; border-left-width: 120px; }
 .split { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: var(--space-6); align-items: start; }
 .pane { min-width: 0; }
+.split.even { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 @media (min-width: 861px) {
   .workspace { height: calc(100vh - var(--header-h) - 2px); display: flex; flex-direction: column; overflow: hidden; }
   .workspace .banner { flex-shrink: 0; }
@@ -359,6 +360,12 @@ select:hover { border-color: var(--accent-600); }
 table.summary { width: 100%; margin-top: var(--space-3); border: 1px solid var(--border-subtle); }
 table.summary td { padding: 8px 12px; white-space: normal; }
 table.summary tr.total td { background: var(--surface-tint); font-size: 15px; }
+
+/* compact table: used where a table has to fit a narrow pane */
+table.compact th, table.compact td { padding: 8px 10px; }
+table.compact th:first-child, table.compact td:first-child { padding-left: var(--space-4); white-space: normal; }
+table.compact th:last-child, table.compact td:last-child { padding-right: var(--space-4); }
+table.compact td .pre { max-width: 90px; }
 
 /* printing and PDF export always use the light theme */
 @media print {

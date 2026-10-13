@@ -7,7 +7,7 @@ import { SettingsTabs } from './SettingsTabs';
 export function SettingsFrame({ user, subtitle, children }: { user: User; subtitle?: string; children: React.ReactNode }) {
   return (
     <Shell user={user}>
-      <PageBanner eyebrow="aahaar bazaar challenge · admin" title="settings" subtitle={subtitle} />
+      <PageBanner eyebrow="the aahaar bazaar challenge · admin" title="settings" subtitle={subtitle} />
       <div className="wrap stack">
         <SettingsTabs />
         {children}
