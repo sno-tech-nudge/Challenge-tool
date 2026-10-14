@@ -12,6 +12,8 @@ function Blocks({ blocks }: { blocks: Block[] }) {
         switch (b.kind) {
           case 'p':
             return <p key={i} className="od-p">{b.text}</p>;
+          case 'subhead':
+            return <h4 key={i} className="od-sub">{b.text}</h4>;
           case 'people':
             return (
               <ul key={i} className="od-people">
@@ -23,12 +25,70 @@ function Blocks({ blocks }: { blocks: Block[] }) {
                 ))}
               </ul>
             );
-          case 'pairs':
+          case 'brief':
             return (
-              <div key={i} className="od-pairs">
-                <div className="od-pairs-head"><span>barrier</span><span>support provided</span></div>
+              <div key={i} className="od-brief">
+                <p className="od-p">{b.description}</p>
+                <div className="od-callout">
+                  <h4>The model</h4>
+                  <p>{b.model}</p>
+                </div>
+                <div className="od-callout">
+                  <h4>Barriers it addresses</h4>
+                  <ul className="od-bullets">{b.barriers.map((t) => <li key={t}>{t}</li>)}</ul>
+                </div>
+              </div>
+            );
+          case 'names':
+            return (
+              <div key={i} className="od-names">
+                <h4>{b.label}</h4>
+                <div className="od-tags">{b.items.map((t) => <span key={t}>{t}</span>)}</div>
+              </div>
+            );
+          case 'panels':
+            return (
+              <div key={i} className="od-panels">
+                {b.panels.map((p) => (
+                  <div key={p.title} className="od-panel">
+                    <h4>{p.title}</h4>
+                    <div className="od-total">{p.total}</div>
+                    {p.lines.map(([k, v]) => (
+                      <div key={k} className="od-line"><span>{k}</span><strong>{v}</strong></div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            );
+          case 'compare':
+            return (
+              <div key={i} className="od-compare">
+                <div><h4>Before</h4><p>{b.before}</p></div>
+                <div className="now"><h4>Now</h4><p>{b.now}</p></div>
+              </div>
+            );
+          case 'items':
+            return (
+              <div key={i} className="od-items">
                 {b.rows.map((r) => (
-                  <div key={r.barrier} className="od-pair"><span>{r.barrier}</span><span>{r.support}</span></div>
+                  <div key={r.title} className="od-item">
+                    <strong>{r.title}</strong>
+                    <dl>
+                      {r.lines.map(([k, v]) => (
+                        <div key={k}><dt>{k}</dt><dd>{v}</dd></div>
+                      ))}
+                    </dl>
+                  </div>
+                ))}
+              </div>
+            );
+          case 'bullets':
+            return <ul key={i} className="od-bullets">{b.items.map((t) => <li key={t}>{t}</li>)}</ul>;
+          case 'rows':
+            return (
+              <div key={i} className="od-rows">
+                {b.rows.map((r) => (
+                  <div key={r.heading} className="od-row"><h4>{r.heading}</h4><p>{r.text}</p></div>
                 ))}
               </div>
             );
@@ -40,39 +100,6 @@ function Blocks({ blocks }: { blocks: Block[] }) {
                 ))}
               </dl>
             );
-          case 'steps':
-            return (
-              <ol key={i} className="od-steps">
-                {b.items.map((t) => <li key={t}>{t}</li>)}
-              </ol>
-            );
-          case 'bars': {
-            const max = Math.max(...b.rows.map((r) => r[1]), 1);
-            return (
-              <div key={i} className="od-bars">
-                {b.rows.map(([label, n]) => (
-                  <div key={label} className="od-bar-row">
-                    <span>{label}</span>
-                    <div className="bar" role="img" aria-label={`${n}`}><span style={{ width: `${(n / max) * 100}%` }} /></div>
-                    <strong>{n}</strong>
-                  </div>
-                ))}
-              </div>
-            );
-          }
-          case 'columns':
-            return (
-              <div key={i} className="od-cols">
-                {b.cols.map((c) => (
-                  <div key={c.title}>
-                    <h4>{c.title}</h4>
-                    <ul>{c.items.map((t) => <li key={t}>{t}</li>)}</ul>
-                  </div>
-                ))}
-              </div>
-            );
-          case 'bullets':
-            return <ul key={i} className="od-bullets">{b.items.map((t) => <li key={t}>{t}</li>)}</ul>;
           case 'remarks':
             return (
               <div key={i} className="od-remarks">
@@ -99,8 +126,8 @@ function Blocks({ blocks }: { blocks: Block[] }) {
   );
 }
 
-/** Body of the "organisation details" card: one tidy block per sheet heading, with a sticky
- *  contents bar to jump between them. Content is placeholder sample text for now. */
+/** Body of the "organisation details" card: one tidy block per section, with a sticky contents
+ *  bar to jump between them. Content is placeholder sample text for now. */
 export function OrgDetails({ website, idPrefix }: { website: string | null; idPrefix: string }) {
   return (
     <div className="od">
@@ -114,21 +141,16 @@ export function OrgDetails({ website, idPrefix }: { website: string | null; idPr
 
       <nav className="od-nav" aria-label="jump to a section">
         {ORG_SECTIONS.map((s) => (
-          <a key={s.key} href={`#${idPrefix}-${s.key}`}>
-            <b>{s.num}</b> {s.short}
-          </a>
+          <a key={s.key} href={`#${idPrefix}-${s.key}`}>{s.short}</a>
         ))}
       </nav>
 
       {ORG_SECTIONS.map((s) => (
         <section key={s.key} id={`${idPrefix}-${s.key}`} className="od-section">
-          <header className="od-head">
-            <span className="od-num">{s.num}</span>
-            <h3>
-              {s.title}
-              {s.note && <span className="od-note"> ({s.note})</span>}
-            </h3>
-          </header>
+          <h3 className="od-title">
+            {s.title}
+            {s.note && <span className="od-note"> ({s.note})</span>}
+          </h3>
           <div className="od-body">
             <Blocks blocks={SAMPLE[s.key] ?? []} />
           </div>

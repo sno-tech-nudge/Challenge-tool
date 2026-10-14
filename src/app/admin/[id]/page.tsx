@@ -26,7 +26,7 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
 
   return (
     <Shell user={user}>
-      <div className="workspace">
+      <div className="workspace has-footer">
       <PageBanner compact
         eyebrow={org.slot ? `the aahaar bazaar challenge · score card · slot ${org.slot}` : 'the aahaar bazaar challenge · score card'}
         title={org.name}
@@ -47,12 +47,6 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
               <p className="pre">{org.internalQueries || <span className="muted">none</span>}</p>
               <h3>swot</h3>
               <p className="pre">{org.internalSwot || <span className="muted">none</span>}</p>
-            </section>
-
-            <section className="card accent" id="verdict">
-              <h2>final verdict</h2>
-              <p className="hint" style={{ marginBottom: 'var(--space-3)' }}>this is the admin call. it shows on the snapshot as soon as you save.</p>
-              <VerdictForm orgId={org.id} verdict={org.verdict} comment={org.verdictComment ?? ''} />
             </section>
           </div>
 
@@ -125,6 +119,12 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
             </div>
           </div>
         </div>
+
+            <section className="card accent verdict-wide" id="verdict">
+              <h2>final verdict</h2>
+              <p className="hint" style={{ marginBottom: 'var(--space-3)' }}>this is the admin call. it shows on the snapshot as soon as you save.</p>
+              <VerdictForm orgId={org.id} verdict={org.verdict} comment={org.verdictComment ?? ''} />
+            </section>
       </div>
       </div>
     </Shell>

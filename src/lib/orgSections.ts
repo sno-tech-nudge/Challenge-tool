@@ -1,40 +1,39 @@
-/** The headings of the "organisation details" card, taken from the working sheet's column headings
- *  (same wording, same order). `num` + `title` + `note` together read exactly like the sheet heading.
- *  `short` is only used for the contents links at the top. */
+/** The sections of the "organisation details" card, in order. No numbers are shown on screen;
+ *  `short` is the label on the contents links at the top. */
 export interface OrgSection {
   key: string;
-  num: string;
   title: string;
   note?: string;
   short: string;
 }
 
 export const ORG_SECTIONS: OrgSection[] = [
-  { key: 'founders', num: 'F', title: 'Founder profiles', short: 'founders' },
-  { key: 'profile', num: '1', title: 'Brief profile', note: 'challenger datasheet', short: 'profile' },
-  { key: 'barriers', num: '2', title: 'Barriers and solution package', note: 'services provided to WFPs', short: 'barriers' },
-  { key: 'geography', num: '3.1', title: 'Coverage: operational area (geography) for TABC', short: 'geography' },
-  { key: 'wfp-types', num: '3.2', title: 'Coverage: WFP types onboarded (individual/group and existing/new)', short: 'wfp types' },
-  { key: 'onboarding', num: '4', title: "WFP's onboarding process", short: 'onboarding' },
-  { key: 'distribution', num: '5', title: 'Distribution of foodpreneurs, based on months in challenge', short: 'distribution' },
-  { key: 'markets', num: '6', title: 'List / typology / category of markets (existing/new)', short: 'markets' },
-  { key: 'partnerships', num: '7', title: 'Partnerships and collaboration at challenger level', short: 'partnerships' },
-  { key: 'plan', num: '8', title: 'Plan and vision', short: 'plan' },
-  { key: 'backup', num: '9', title: 'Backup data table for all scoring items (quantitative aspects)', short: 'backup data' },
-  { key: 'scoresheets', num: '10', title: 'Individual score sheets with remarks', short: 'score sheets' },
-  { key: 'swot', num: '11', title: 'SWOT', short: 'swot' },
+  { key: 'founders', title: 'Founder profiles', short: 'founders' },
+  { key: 'brief', title: 'Organisation brief', short: 'brief' },
+  { key: 'geography', title: 'Geographical coverage', short: 'geography' },
+  { key: 'wfps', title: 'No. of WFPs covered', short: 'WFPs covered' },
+  { key: 'markets', title: 'Markets', note: 'market channel shift', short: 'markets' },
+  { key: 'partnerships', title: 'Partnerships', short: 'partnerships' },
+  { key: 'economics', title: 'Unit economics', short: 'unit economics' },
+  { key: 'plan', title: 'Plan and vision', short: 'plan' },
+  { key: 'backup', title: 'Backup data table for all scoring items (quantitative aspects)', short: 'backup data' },
+  { key: 'scoresheets', title: 'Individual score sheets with remarks', short: 'score sheets' },
+  { key: 'swot', title: 'SWOT', short: 'swot' },
 ];
 
 /** How a section's content is drawn. Real data will fill the same shapes later. */
 export type Block =
   | { kind: 'p'; text: string }
+  | { kind: 'subhead'; text: string }
   | { kind: 'people'; rows: { name: string; role: string }[] }
-  | { kind: 'pairs'; rows: { barrier: string; support: string }[] }
-  | { kind: 'facts'; rows: [string, string][] }
-  | { kind: 'steps'; items: string[] }
-  | { kind: 'bars'; rows: [string, number][] }
-  | { kind: 'columns'; cols: { title: string; items: string[] }[] }
+  | { kind: 'brief'; description: string; model: string; barriers: string[] }
+  | { kind: 'names'; label: string; items: string[] }
+  | { kind: 'panels'; panels: { title: string; total: string; lines: [string, string][] }[] }
+  | { kind: 'compare'; before: string; now: string }
+  | { kind: 'items'; rows: { title: string; lines: [string, string][] }[] }
   | { kind: 'bullets'; items: string[] }
+  | { kind: 'rows'; rows: { heading: string; text: string }[] }
+  | { kind: 'facts'; rows: [string, string][] }
   | { kind: 'remarks'; rows: { who: string; text: string; score: string }[] }
   | { kind: 'swot'; s: string; w: string; o: string; t: string };
 
@@ -50,69 +49,86 @@ export const SAMPLE: Record<string, Block[]> = {
       ],
     },
   ],
-  profile: [
-    { kind: 'p', text: 'Sample Foods Private Limited is a company started in 2021. It helps women food entrepreneurs prepare, package and sell home-style food in nearby markets.' },
-    { kind: 'p', text: 'This paragraph is sample text so you can see how a longer brief profile reads on the page.' },
-  ],
-  barriers: [
+  brief: [
     {
-      kind: 'pairs',
-      rows: [
-        { barrier: 'No access to working capital', support: 'Small revolving loans and a savings group' },
-        { barrier: 'No packaging or food-safety knowledge', support: 'Training and a shared packing kitchen' },
-        { barrier: 'No steady buyers', support: 'Weekly stalls and bulk orders from offices' },
-      ],
+      kind: 'brief',
+      description: 'Sample Foods Private Limited, started in 2021, helps women food entrepreneurs prepare, package and sell home-style food in nearby markets.',
+      model: 'Women join a training and mentoring programme, cook in a shared kitchen, and sell through stalls, bulk orders and listings that the organisation arranges for them.',
+      barriers: ['Little or no working capital', 'No packaging or food-safety know-how', 'No steady buyers beyond neighbours'],
     },
   ],
   geography: [
-    { kind: 'p', text: 'Sample text: active in four districts across two states, with the main hub in one district and satellite clusters in the others.' },
-    {
-      kind: 'facts',
-      rows: [
-        ['States', '2'],
-        ['Districts', '4'],
-      ],
-    },
+    { kind: 'names', label: 'States', items: ['Sample State A', 'Sample State B'] },
+    { kind: 'names', label: 'Operational districts', items: ['District One', 'District Two', 'District Three', 'District Four'] },
   ],
-  'wfp-types': [
+  wfps: [
     {
-      kind: 'facts',
-      rows: [
-        ['Foodpreneurs onboarded', '48'],
-        ['Individuals', '30  (22 existing, 8 new)'],
-        ['Groups', '6  (4 existing, 2 new)'],
-      ],
-    },
-  ],
-  onboarding: [
-    {
-      kind: 'steps',
-      items: ['Community meeting and interest form', 'Home visit with a taste and hygiene check', 'Three-day training, then a trial stall', 'Enrolment with a mentor for the first month'],
-    },
-  ],
-  distribution: [
-    {
-      kind: 'bars',
-      rows: [
-        ['0 to 3 months', 14],
-        ['4 to 6 months', 19],
-        ['7 to 12 months', 15],
+      kind: 'panels',
+      panels: [
+        { title: 'Individuals', total: '30', lines: [['Existing', '22'], ['New', '8']] },
+        { title: 'Collectives', total: '6', lines: [['Existing', '4'], ['New', '2']] },
       ],
     },
   ],
   markets: [
+    { kind: 'compare', before: '2 channels, accessed by the women on their own', now: '5 channels, of which 3 were opened through the organisation' },
+    { kind: 'subhead', text: 'Channels the women were already using (baseline)' },
     {
-      kind: 'columns',
-      cols: [
-        { title: 'Existing', items: ['Weekly local market', 'Two office canteens', 'School fair'] },
-        { title: 'New', items: ['Railway station stall', 'Online group-order list'] },
+      kind: 'items',
+      rows: [
+        { title: 'Neighbourhood and word-of-mouth sales', lines: [['Note', 'Self-accessed. Irregular orders, priced informally.']] },
+        { title: 'Local haat / weekly market', lines: [['Note', 'Self-accessed. Seasonal, dependent on travel and stall access.']] },
       ],
     },
+    { kind: 'subhead', text: 'Channels opened through the organisation (since intervention)' },
+    {
+      kind: 'items',
+      rows: [
+        {
+          title: 'Corporate canteen supply',
+          lines: [
+            ['Opened', 'March 2026'],
+            ['Women active', '18 of 40'],
+            ['Status', 'Repeat orders for 4 consecutive months'],
+            ['What the organisation did', 'Negotiated the contract, set up FSSAI compliance, aggregates orders'],
+          ],
+        },
+        {
+          title: 'Online marketplace listing',
+          lines: [
+            ['Opened', 'May 2026'],
+            ['Women active', '12 of 40'],
+            ['Status', 'Listed, 60+ orders to date, returns under 5%'],
+            ['What the organisation did', 'Packaging, catalogue photography, account management'],
+          ],
+        },
+        {
+          title: 'Retail shelf space (2 local stores)',
+          lines: [
+            ['Opened', 'July 2026'],
+            ['Women active', '9 of 40'],
+            ['Status', 'Pilot, first restock completed'],
+            ['What the organisation did', 'Brokered placement, manages consignment terms'],
+          ],
+        },
+      ],
+    },
+    { kind: 'subhead', text: 'Existing channels strengthened' },
+    { kind: 'p', text: 'Local haat: now selling under a common brand with standard pricing.' },
   ],
   partnerships: [
+    { kind: 'subhead', text: 'Active partnerships' },
+    { kind: 'bullets', items: ['Mobilisation partner: XXXX', 'Technical partner: YYYYY'] },
+    { kind: 'subhead', text: 'Proposed partnerships' },
+    { kind: 'bullets', items: ['Mobilisation partner: XXXX', 'Technical partner: YYYYY'] },
+  ],
+  economics: [
     {
-      kind: 'bullets',
-      items: ['Local bank for small loans', 'Food-safety trainer', 'District women’s federation', 'Retail chain, on a trial basis'],
+      kind: 'rows',
+      rows: [
+        { heading: 'Solution model: revenue', text: 'To be filled from the factsheet: who exactly funds the solution work and its runway (grant-based funder model, end-consumer funded model), and which company, person or government.' },
+        { heading: 'Organisational cost model', text: 'To be filled from the factsheet: the cost of implementing the model, and the unit cost to the organisation of providing the solution to one new woman.' },
+      ],
     },
   ],
   plan: [
