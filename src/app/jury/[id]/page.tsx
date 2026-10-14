@@ -26,7 +26,13 @@ export default async function JuryOrgPage({ params }: { params: { id: string } }
         actions={mine ? <Pill tone="good">you scored {mine.total}</Pill> : <Pill tone="warn">not scored yet</Pill>}
       />
       <div className="wrap">
-        <OrgPager base="/jury" baseLabel="organisations" name={org.name} {...nav} />
+        <OrgPager
+          base="/jury"
+          baseLabel="organisations"
+          name={org.name}
+          {...nav}
+          lockedReason={mine ? undefined : 'submit your scores to move to another organisation'}
+        />
 
         <div className="split">
           <div className="pane stack">

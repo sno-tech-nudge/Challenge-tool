@@ -7,7 +7,9 @@ import { submitReviewAction, clearReviewAction, type FormState } from '@/lib/act
 import { PARAMETERS, type ScoreEntry } from '@/lib/rubric';
 import { JURY_MAX } from '@/lib/constants';
 import { useToast } from '@/components/Toast';
+import Link from 'next/link';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { InfoDialog } from '@/components/InfoDialog';
 
 function Submit({ label, disabled }: { label: string; disabled: boolean }) {
   const { pending } = useFormStatus();
@@ -29,9 +31,8 @@ export function ReviewForm({ orgId, existing }: { orgId: string; existing: Score
   // every submit goes through a summary dialog first; confirming re-submits the form once
   const formRef = React.useRef<HTMLFormElement>(null);
   const confirmed = React.useRef(false);
-  // whether this save is an update, captured at submit time (the page refreshes before the outcome toast)
-  const wasUpdate = React.useRef(false);
   const [summaryOpen, setSummaryOpen] = React.useState(false);
+  const [thanksOpen, setThanksOpen] = React.useState(false);
 
   const filled = PARAMETERS.filter((p) => scores[p.key] !== '').length;
   const total = PARAMETERS.reduce((s, p) => s + (Number(scores[p.key]) || 0), 0);
@@ -41,10 +42,11 @@ export function ReviewForm({ orgId, existing }: { orgId: string; existing: Score
   };
   const anyInvalid = PARAMETERS.some((p) => invalid(p.key, p.max));
 
-  // each submit produces a new state object: show the outcome once as a toast
+  // each submit produces a new state object: acknowledge a save once, or show the error
   React.useEffect(() => {
     if (state.ok) {
-      toast(wasUpdate.current ? 'review updated' : 'review submitted');
+      // a saved review is acknowledged with the thank-you window instead of the fading popup
+      setThanksOpen(true);
       setDirty(false);
     } else if (state.error) {
       toast(state.error, 'error');
@@ -74,7 +76,6 @@ export function ReviewForm({ orgId, existing }: { orgId: string; existing: Score
 
   function confirmSubmit() {
     confirmed.current = true;
-    wasUpdate.current = existing.length > 0;
     setSummaryOpen(false);
     formRef.current?.requestSubmit();
   }
@@ -156,7 +157,7 @@ export function ReviewForm({ orgId, existing }: { orgId: string; existing: Score
       <ConfirmDialog
         open={summaryOpen}
         wide
-        title={existing.length ? 'update your review?' : 'submit your review?'}
+        title={existing.length ? 'are you sure you want to update your scores?' : 'are you sure you want to submit your scores?'}
         body={
           <>
             <table className="summary">
@@ -173,14 +174,28 @@ export function ReviewForm({ orgId, existing }: { orgId: string; existing: Score
                 </tr>
               </tbody>
             </table>
-            <p className="hint" style={{ marginTop: 'var(--space-3)' }}>you can edit your scores again later if you need to.</p>
+            <p className="hint" style={{ marginTop: 'var(--space-3)' }}>choose no to go back and revisit your scores.</p>
           </>
         }
-        confirmLabel={existing.length ? 'confirm and update' : 'confirm and submit'}
-        cancelLabel="go back"
+        confirmLabel="yes"
+        cancelLabel="no"
         onConfirm={confirmSubmit}
         onCancel={() => setSummaryOpen(false)}
       />
+
+      <InfoDialog
+        open={thanksOpen}
+        title="thank you for submitting your scores"
+        onClose={() => setThanksOpen(false)}
+        actions={
+          <>
+            <button type="button" className="btn secondary" onClick={() => setThanksOpen(false)}>stay on this page</button>
+            <Link href="/jury" className="btn">back to the home screen</Link>
+          </>
+        }
+      >
+        your scores for this organisation have been saved.
+      </InfoDialog>
 
       <ConfirmDialog
         open={confirmClear}

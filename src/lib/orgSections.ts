@@ -15,7 +15,7 @@ export const ORG_SECTIONS: OrgSection[] = [
   { key: 'markets', title: 'Markets', note: 'market channel shift', short: 'markets' },
   { key: 'partnerships', title: 'Partnerships', short: 'partnerships' },
   { key: 'economics', title: 'Unit economics', short: 'unit economics' },
-  { key: 'plan', title: 'Plan and vision', short: 'plan' },
+  { key: 'plan', title: 'Scalability Plan & Vision', short: 'scalability plan' },
   { key: 'backup', title: 'Backup data table for all scoring items (quantitative aspects)', short: 'backup data' },
   { key: 'scoresheets', title: 'Individual score sheets with remarks', short: 'score sheets' },
   { key: 'swot', title: 'SWOT', short: 'swot' },

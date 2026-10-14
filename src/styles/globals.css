@@ -456,6 +456,9 @@ table.compact td .pre { max-width: 90px; }
   .workspace.has-footer .split { flex: none; height: calc(100vh - var(--header-h) - 215px); min-height: 420px; }
 }
 
+.pager-hint { margin-right: var(--space-2); }
+.tick-lg { width: 36px; height: 36px; display: grid; place-items: center; margin-bottom: var(--space-3); background: var(--status-good); color: #fff; font-size: 20px; font-weight: var(--fw-bold); }
+
 /* printing and PDF export always use the light theme */
 @media print {
   :root[data-theme='dark'] { --surface-canvas: #fff; --surface-card: #fff; --surface-tint: #f0f8f3; --text-primary: #1f1f1f; --text-secondary: #4a4a4a; --text-muted: #777777; --border-subtle: #e3e0dc; --border-strong: #bdb8b2; }
