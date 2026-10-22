@@ -56,7 +56,7 @@ export function EcociateForm({ orgId, score, remarks }: { orgId: string; score: 
       <input type="hidden" name="orgId" value={orgId} />
       <div>
         <label htmlFor="score">score out of {ECOCIATE_MAX} (blank = not fed yet)</label>
-        <input id="score" name="score" type="number" min={0} max={ECOCIATE_MAX} step="0.1" defaultValue={score ?? ''} />
+        <input id="score" name="score" type="number" min={0} max={ECOCIATE_MAX} step="0.1" defaultValue={score ?? ''} onWheel={(e) => e.currentTarget.blur()} />
       </div>
       <div>
         <label htmlFor="remarks">remarks and reasoning</label>

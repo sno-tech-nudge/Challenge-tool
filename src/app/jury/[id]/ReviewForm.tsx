@@ -134,6 +134,7 @@ export function ReviewForm({ orgId, existing }: { orgId: string; existing: Score
                     aria-invalid={invalid(p.key)}
                     value={scores[p.key]}
                     onChange={(e) => setScores({ ...scores, [p.key]: e.target.value })}
+                    onWheel={(e) => e.currentTarget.blur()}
                   />
                   <div className="hint" style={{ marginTop: 4 }}>
                     = {scores[p.key] !== '' && !invalid(p.key) ? weightedPoints(p, n) : '-'} of {p.weight} points
