@@ -31,7 +31,21 @@ export type Block =
   | { kind: 'items'; rows: { title: string; lines: [string, string][] }[] }
   | { kind: 'bullets'; items: string[] }
   | { kind: 'rows'; rows: { heading: string; text: string }[] }
-  | { kind: 'swot'; s: string; w: string; o: string; t: string };
+  | { kind: 'swot'; s: string | string[]; w: string | string[]; o: string | string[]; t: string | string[] };
+
+/** One organisation's details: content per section key. A missing or empty section is not shown. */
+export type OrgDetailsData = Record<string, Block[]>;
+
+/** Reads Org.details; anything missing or malformed means "not loaded" (null). */
+export function parseDetails(json: string | null | undefined): OrgDetailsData | null {
+  if (!json) return null;
+  try {
+    const v = JSON.parse(json);
+    return v && typeof v === 'object' && !Array.isArray(v) ? (v as OrgDetailsData) : null;
+  } catch {
+    return null;
+  }
+}
 
 /** PLACEHOLDER TEXT ONLY, so the layout can be judged. Entirely made up; no real organisation data.
  *  Replace with each organisation's own content when the real data is loaded. */

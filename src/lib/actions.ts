@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { prisma } from './db';
 import { requireRole } from './auth/session';
-import { PARAMETERS, type ScoreEntry } from './rubric';
+import { PARAMETERS, SCORE_MIN, SCORE_MAX, SCORE_STEP, computeTotal, type ScoreEntry } from './rubric';
 import { ECOCIATE_MAX, JURY_RAW_MAX } from './constants';
 import { logActivity } from './activity';
 
@@ -34,12 +34,14 @@ export async function submitReviewAction(_prev: FormState, formData: FormData): 
   for (const p of PARAMETERS) {
     const raw = String(formData.get(`score_${p.key}`) ?? '').trim();
     const score = Number(raw);
-    if (raw === '' || !Number.isFinite(score) || score < 0 || score > p.max) {
-      return { error: `${p.label}: enter a score from 0 to ${p.max}` };
+    // a whole or half point from SCORE_MIN to SCORE_MAX
+    if (raw === '' || !Number.isFinite(score) || score < SCORE_MIN || score > SCORE_MAX || Math.round(score / SCORE_STEP) * SCORE_STEP !== score) {
+      return { error: `${p.label} enter a score from ${SCORE_MIN} to ${SCORE_MAX} (in steps of ${SCORE_STEP})` };
     }
     entries.push({ key: p.key, score, remarks: String(formData.get(`remarks_${p.key}`) ?? '').trim() });
   }
-  const total = entries.reduce((s, e) => s + e.score, 0);
+  // each score is out of 10; the stored total is the weighted total out of 100
+  const total = computeTotal(Object.fromEntries(entries.map((e) => [e.key, e.score])));
 
   const previous = await prisma.juryScore.findUnique({ where: { orgId_jurorId: { orgId, jurorId: user.id } }, select: { total: true } });
   await prisma.juryScore.upsert({

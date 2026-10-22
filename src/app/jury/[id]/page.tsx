@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { requireRole } from '@/lib/auth/session';
 import { getOrgForJuror, orgNeighbours } from '@/lib/queries';
 import { parseEntries } from '@/lib/rubric';
+import { parseDetails } from '@/lib/orgSections';
 import { Shell } from '@/components/Shell';
 import { PageBanner, Pill } from '@/components/ui';
 import { OrgPager } from '@/components/OrgPager';
@@ -37,7 +38,7 @@ export default async function JuryOrgPage({ params }: { params: { id: string } }
           <div className="pane stack">
             <section className="card accent" id="details">
               <h2>organisation details</h2>
-              <OrgDetails website={org.website} idPrefix="j" />
+              <OrgDetails website={org.website} idPrefix="j" details={parseDetails(org.details)} />
             </section>
 
             <section className="card" id="internal">

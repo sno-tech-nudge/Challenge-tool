@@ -35,6 +35,9 @@ model Org {
   summary  String? // short blurb shown in lists and at the top of the page
   about    String? // long free text, whitespace preserved
 
+  // the organisation details card: JSON of { sectionKey: Block[] } (see src/lib/orgSections.ts). null = not loaded yet.
+  details String?
+
   // admin-written, shown read-only to jurors
   internalQueries String?
   internalSwot    String?

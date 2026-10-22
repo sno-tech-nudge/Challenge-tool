@@ -397,7 +397,7 @@ table.compact td .pre { max-width: 90px; }
 .od-people li { display: flex; gap: var(--space-3); align-items: center; }
 .od-avatar { width: 36px; height: 36px; display: grid; place-items: center; background: var(--surface-tint); color: var(--text-accent); border: 1px solid var(--border-subtle); font-size: 13px; font-weight: var(--fw-bold); flex-shrink: 0; }
 .od-pair { border-top: 1px solid var(--border-subtle); }
-.od-swot { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+.od-swot { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
 .od-swot > div { border: 1px solid var(--border-subtle); border-top: 3px solid var(--border-strong); padding: 10px var(--space-3); }
 .od-swot .s { border-top-color: var(--status-good); }
 .od-swot .w { border-top-color: var(--status-bad); }
@@ -450,6 +450,19 @@ table.compact td .pre { max-width: 90px; }
 
 .pager-hint { margin-right: var(--space-2); }
 .tick-lg { width: 36px; height: 36px; display: grid; place-items: center; margin-bottom: var(--space-3); background: var(--status-good); color: #fff; font-size: 20px; font-weight: var(--fw-bold); }
+
+/* review form: questions to consider, and the scoring guide panel */
+.param-help { margin: 4px 0 var(--space-2); font-size: var(--fs-small); }
+.param-help summary { cursor: pointer; color: var(--text-accent); font-weight: var(--fw-semibold); width: fit-content; }
+.param-help h4, .guide h4 { margin: var(--space-3) 0 var(--space-1); font-size: var(--fs-caption); text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
+.param-help ul, .guide ul { margin: 0; padding-left: 18px; }
+.param-help li, .guide li { margin: 3px 0; color: var(--text-secondary); }
+.guide h3 { margin: var(--space-5) 0 var(--space-2); font-size: var(--fs-small); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-secondary); }
+.guide h3:first-child { margin-top: 0; }
+.guide-formula { padding: 8px 12px; background: var(--surface-tint); border-left: 3px solid var(--accent-600); font-weight: var(--fw-semibold); }
+table.summary th { padding: 6px 12px; }
+
+.od-sample { margin: 0 0 var(--space-3); padding: 6px 10px; border: 1px dashed var(--border-strong); color: var(--text-muted); font-size: var(--fs-small); }
 
 /* printing and PDF export always use the light theme */
 @media print {

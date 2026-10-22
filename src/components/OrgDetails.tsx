@@ -1,8 +1,14 @@
 import { ExternalLink } from 'lucide-react';
-import { ORG_SECTIONS, SAMPLE, type Block } from '@/lib/orgSections';
+import { ORG_SECTIONS, SAMPLE, type Block, type OrgDetailsData } from '@/lib/orgSections';
 
 function initials(name: string) {
   return name.split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+}
+
+/** A SWOT cell: one sentence, or a list of points. */
+function Points({ v }: { v: string | string[] }) {
+  if (typeof v === 'string') return <p>{v}</p>;
+  return <ul className="od-bullets">{v.map((t) => <li key={t}>{t}</li>)}</ul>;
 }
 
 function Blocks({ blocks }: { blocks: Block[] }) {
@@ -95,10 +101,10 @@ function Blocks({ blocks }: { blocks: Block[] }) {
           case 'swot':
             return (
               <div key={i} className="od-swot">
-                <div className="s"><h4>Strengths</h4><p>{b.s}</p></div>
-                <div className="w"><h4>Weaknesses</h4><p>{b.w}</p></div>
-                <div className="o"><h4>Opportunities</h4><p>{b.o}</p></div>
-                <div className="t"><h4>Threats</h4><p>{b.t}</p></div>
+                <div className="s"><h4>Strengths</h4><Points v={b.s} /></div>
+                <div className="w"><h4>Weaknesses</h4><Points v={b.w} /></div>
+                <div className="o"><h4>Opportunities</h4><Points v={b.o} /></div>
+                <div className="t"><h4>Threats</h4><Points v={b.t} /></div>
               </div>
             );
         }
@@ -109,7 +115,10 @@ function Blocks({ blocks }: { blocks: Block[] }) {
 
 /** Body of the "organisation details" card: one tidy block per section, with a sticky contents
  *  bar to jump between them. Content is placeholder sample text for now. */
-export function OrgDetails({ website, idPrefix }: { website: string | null; idPrefix: string }) {
+export function OrgDetails({ website, idPrefix, details }: { website: string | null; idPrefix: string; details: OrgDetailsData | null }) {
+  // an organisation with nothing loaded yet shows the sample text, clearly marked
+  const data = details ?? SAMPLE;
+  const sections = ORG_SECTIONS.filter((s) => (data[s.key]?.length ?? 0) > 0);
   return (
     <div className="od">
       {website && (
@@ -120,20 +129,22 @@ export function OrgDetails({ website, idPrefix }: { website: string | null; idPr
         </p>
       )}
 
+      {!details && <p className="od-sample">sample content: this organisation's real details have not been loaded yet.</p>}
+
       <nav className="od-nav" aria-label="jump to a section">
-        {ORG_SECTIONS.map((s) => (
+        {sections.map((s) => (
           <a key={s.key} href={`#${idPrefix}-${s.key}`}>{s.short}</a>
         ))}
       </nav>
 
-      {ORG_SECTIONS.map((s) => (
+      {sections.map((s) => (
         <section key={s.key} id={`${idPrefix}-${s.key}`} className="od-section">
           <h3 className="od-title">
             {s.title}
             {s.note && <span className="od-note"> ({s.note})</span>}
           </h3>
           <div className="od-body">
-            <Blocks blocks={SAMPLE[s.key] ?? []} />
+            <Blocks blocks={data[s.key]} />
           </div>
         </section>
       ))}

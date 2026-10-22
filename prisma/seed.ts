@@ -5,7 +5,8 @@ import { PrismaClient } from '@prisma/client';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { hashPassword } from '../src/lib/auth/password';
-import { PARAMETERS } from '../src/lib/rubric';
+import { PARAMETERS, SCORE_MIN, computeTotal } from '../src/lib/rubric';
+import { importOrgs, type OrgInput } from './orgImport';
 
 const prisma = new PrismaClient();
 
@@ -24,21 +25,6 @@ const OVERRIDES: Record<string, string> = {
   'gaurang.wadhawan@thenudge.org': 'SEED_PASSWORD_JUROR1',
 };
 
-interface OrgInput {
-  key: string;
-  name: string;
-  slot?: string;
-  sector?: string;
-  location?: string;
-  website?: string;
-  summary?: string;
-  about?: string;
-  internalQueries?: string;
-  internalSwot?: string;
-  ecociateScore?: number;
-  ecociateRemarks?: string;
-}
-
 async function main() {
   for (const u of USERS) {
     // optional per-account override from .env, e.g. SEED_PASSWORD_ADMIN / SEED_PASSWORD_JUROR1
@@ -49,9 +35,7 @@ async function main() {
   const real = join(process.cwd(), 'data', 'orgs.json');
   const file = existsSync(real) ? real : join(process.cwd(), 'data', 'orgs.sample.json');
   const orgs = JSON.parse(readFileSync(file, 'utf8')) as OrgInput[];
-  for (const o of orgs) {
-    await prisma.org.upsert({ where: { key: o.key }, create: o, update: o });
-  }
+  await importOrgs(prisma, orgs);
   console.log(`seeded ${USERS.length} users and ${orgs.length} organisations from ${file}`);
 
   // demo scores only for the fictional sample data, from jurors 2-4, so juror 1 starts with a clean slate
@@ -60,8 +44,9 @@ async function main() {
     const demoOrgs = await prisma.org.findMany({ where: { key: { in: ['test-org-1', 'test-org-2', 'test-org-3'] } } });
     for (const [oi, org] of demoOrgs.entries()) {
       for (const [ji, juror] of demoJurors.entries()) {
-        const entries = PARAMETERS.map((p) => ({ key: p.key, score: Math.max(0, p.max - ((oi + ji) % 3)), remarks: ji === 0 ? 'sample remark' : '' }));
-        const total = entries.reduce((s, e) => s + e.score, 0);
+        // demo scores out of 10 per criterion, varied a little by organisation and juror
+        const entries = PARAMETERS.map((p, pi) => ({ key: p.key, score: Math.max(SCORE_MIN, 9 - ((oi + ji + pi) % 4)), remarks: ji === 0 ? 'sample remark' : '' }));
+        const total = computeTotal(Object.fromEntries(entries.map((e) => [e.key, e.score])));
         await prisma.juryScore.upsert({
           where: { orgId_jurorId: { orgId: org.id, jurorId: juror.id } },
           create: { orgId: org.id, jurorId: juror.id, entries: JSON.stringify(entries), total },

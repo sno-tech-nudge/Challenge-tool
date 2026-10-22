@@ -3,6 +3,7 @@ import { requireRole } from '@/lib/auth/session';
 import { getOrgForAdmin, listJurors, orgNeighbours } from '@/lib/queries';
 import { PARAMETERS, parseEntries } from '@/lib/rubric';
 import { snapshot } from '@/lib/scoring';
+import { parseDetails } from '@/lib/orgSections';
 import { ECOCIATE_MAX, JURY_MAX, JURY_RAW_MAX } from '@/lib/constants';
 import { Shell } from '@/components/Shell';
 import { PageBanner, Pill, ScoreBar, scoreTone } from '@/components/ui';
@@ -39,7 +40,7 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
           <div className="pane stack">
             <section className="card accent" id="details">
               <h2>organisation details</h2>
-              <OrgDetails website={org.website} idPrefix="a" />
+              <OrgDetails website={org.website} idPrefix="a" details={parseDetails(org.details)} />
             </section>
             <section className="card" id="internal">
               <h2>internal remarks</h2>
@@ -89,11 +90,11 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
                 <EcociateForm orgId={org.id} score={org.ecociateScore} remarks={org.ecociateRemarks ?? ''} />
               </section>
             <section className="card scroll" id="jury" style={{ padding: 0 }}>
-              <div style={{ padding: 'var(--space-5) var(--space-5) var(--space-3)' }}><h2 style={{ margin: 0 }}>jury scores by juror</h2></div>
+              <div style={{ padding: 'var(--space-5) var(--space-5) var(--space-3)' }}><h2 style={{ margin: 0 }}>jury scores by juror</h2><p className="hint" style={{ marginTop: 4 }}>each score is out of 10; the total is weighted out of {JURY_RAW_MAX}.</p></div>
               <table className="compact">
                 <thead>
                   <tr>
-                    <th>parameter</th><th className="num">max</th>
+                    <th>criterion</th><th className="num">weight</th>
                     {jurors.map((j) => <th key={j.id} className="num">{j.name}</th>)}
                   </tr>
                 </thead>
@@ -101,7 +102,7 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
                   {PARAMETERS.map((p) => (
                     <tr key={p.key}>
                       <td>{p.label}</td>
-                      <td className="num muted">{p.max}</td>
+                      <td className="num muted">{p.weight}%</td>
                       {jurors.map((j) => {
                         const e = byJuror.get(j.id)?.entries.get(p.key);
                         return (
@@ -114,7 +115,7 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
                     </tr>
                   ))}
                   <tr style={{ background: 'var(--surface-tint)' }}>
-                    <td><strong>total</strong></td><td className="num muted">{JURY_RAW_MAX}</td>
+                    <td><strong>total (weighted)</strong></td><td className="num muted">{JURY_RAW_MAX}</td>
                     {jurors.map((j) => <td key={j.id} className="num"><strong>{show(byJuror.get(j.id)?.total ?? null)}</strong></td>)}
                   </tr>
                 </tbody>

@@ -30,6 +30,7 @@ export async function getOrgForJuror(orgId: string, jurorId: string) {
       website: true,
       summary: true,
       about: true,
+      details: true,
       internalQueries: true,
       internalSwot: true,
       scores: { where: { jurorId }, select: { entries: true, total: true } },

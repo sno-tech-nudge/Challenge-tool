@@ -1,13 +1,13 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { useFormState, useFormStatus } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { submitReviewAction, clearReviewAction, type FormState } from '@/lib/actions';
-import { PARAMETERS, type ScoreEntry } from '@/lib/rubric';
+import { PARAMETERS, SCORE_MIN, SCORE_MAX, SCORE_STEP, weightedPoints, computeTotal, type ScoreEntry } from '@/lib/rubric';
 import { JURY_RAW_MAX } from '@/lib/constants';
 import { useToast } from '@/components/Toast';
-import Link from 'next/link';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { InfoDialog } from '@/components/InfoDialog';
 
@@ -35,12 +35,15 @@ export function ReviewForm({ orgId, existing }: { orgId: string; existing: Score
   const [thanksOpen, setThanksOpen] = React.useState(false);
 
   const filled = PARAMETERS.filter((p) => scores[p.key] !== '').length;
-  const total = PARAMETERS.reduce((s, p) => s + (Number(scores[p.key]) || 0), 0);
-  const invalid = (key: string, max: number) => {
+  // same formula the server uses; the saved total is the weighted total out of 100
+  const total = computeTotal(Object.fromEntries(PARAMETERS.map((p) => [p.key, Number(scores[p.key]) || 0])));
+  const invalid = (key: string) => {
     const v = scores[key];
-    return v !== '' && (!Number.isFinite(Number(v)) || Number(v) < 0 || Number(v) > max);
+    if (v === '') return false;
+    const n = Number(v);
+    return !Number.isFinite(n) || n < SCORE_MIN || n > SCORE_MAX || Math.round(n / SCORE_STEP) * SCORE_STEP !== n;
   };
-  const anyInvalid = PARAMETERS.some((p) => invalid(p.key, p.max));
+  const anyInvalid = PARAMETERS.some((p) => invalid(p.key));
 
   // each submit produces a new state object: acknowledge a save once, or show the error
   React.useEffect(() => {
@@ -99,39 +102,49 @@ export function ReviewForm({ orgId, existing }: { orgId: string; existing: Score
       <form ref={formRef} action={action} onSubmit={onSubmit} onChange={() => setDirty(true)}>
         <input type="hidden" name="orgId" value={orgId} />
         {PARAMETERS.map((p, i) => {
-          const pct = Math.min(100, ((Number(scores[p.key]) || 0) / p.max) * 100);
+          const n = Number(scores[p.key]) || 0;
+          const pct = Math.min(100, (n / SCORE_MAX) * 100);
           return (
             <div className="param" key={p.key}>
               <div className="param-head">
                 <span className="param-title">{i + 1}. {p.label}</span>
-                <span className="hint">max {p.max}</span>
+                <span className="pill">{p.weight}%</span>
               </div>
-              <p className="hint">{p.hint}</p>
+              <details className="param-help">
+                <summary>questions to consider</summary>
+                <h4>component questions</h4>
+                <ul>{p.components.map((t) => <li key={t}>{t}</li>)}</ul>
+                <h4>jury lens: scale and punt-ability</h4>
+                <ul>{p.lens.map((t) => <li key={t}>{t}</li>)}</ul>
+              </details>
               <div className="param-meter" aria-hidden="true"><span style={{ width: `${pct}%` }} /></div>
               <div className="score-row">
                 <div>
-                  <label htmlFor={`score_${p.key}`}>score</label>
+                  <label htmlFor={`score_${p.key}`}>score out of {SCORE_MAX}</label>
                   <input
                     id={`score_${p.key}`}
                     name={`score_${p.key}`}
                     type="number"
                     inputMode="decimal"
-                    min={0}
-                    max={p.max}
-                    step="0.5"
+                    min={SCORE_MIN}
+                    max={SCORE_MAX}
+                    step={SCORE_STEP}
                     required
-                    className={invalid(p.key, p.max) ? 'field-error' : undefined}
-                    aria-invalid={invalid(p.key, p.max)}
+                    className={invalid(p.key) ? 'field-error' : undefined}
+                    aria-invalid={invalid(p.key)}
                     value={scores[p.key]}
                     onChange={(e) => setScores({ ...scores, [p.key]: e.target.value })}
                   />
+                  <div className="hint" style={{ marginTop: 4 }}>
+                    = {scores[p.key] !== '' && !invalid(p.key) ? weightedPoints(p, n) : '-'} of {p.weight} points
+                  </div>
                 </div>
                 <div style={{ flex: '1 1 200px' }}>
                   <label htmlFor={`remarks_${p.key}`}>remarks</label>
                   <textarea id={`remarks_${p.key}`} name={`remarks_${p.key}`} value={remarks[p.key]} onChange={(e) => setRemarks({ ...remarks, [p.key]: e.target.value })} style={{ minHeight: 38 }} />
                 </div>
               </div>
-              {invalid(p.key, p.max) && <p className="err">enter a number from 0 to {p.max}</p>}
+              {invalid(p.key) && <p className="err">enter a score from {SCORE_MIN} to {SCORE_MAX} (whole or half points)</p>}
             </div>
           );
         })}
@@ -139,7 +152,7 @@ export function ReviewForm({ orgId, existing }: { orgId: string; existing: Score
         <div className="total-bar">
           <div className="row" style={{ alignItems: 'center' }}>
             <div>
-              <div className="small muted">final score</div>
+              <div className="small muted">your total</div>
               <div className="big">{total} <small>/ {JURY_RAW_MAX}</small></div>
             </div>
             <div className="small muted">{filled} of {PARAMETERS.length} scored</div>
@@ -161,15 +174,19 @@ export function ReviewForm({ orgId, existing }: { orgId: string; existing: Score
         body={
           <>
             <table className="summary">
+              <thead>
+                <tr><th>criterion</th><th className="num">score</th><th className="num">points</th></tr>
+              </thead>
               <tbody>
                 {PARAMETERS.map((p, i) => (
                   <tr key={p.key}>
                     <td>{i + 1}. {p.label}</td>
-                    <td className="num"><strong>{Number(scores[p.key]) || 0}</strong> <span className="muted">/ {p.max}</span></td>
+                    <td className="num"><strong>{Number(scores[p.key]) || 0}</strong> <span className="muted">/ {SCORE_MAX}</span></td>
+                    <td className="num"><strong>{weightedPoints(p, Number(scores[p.key]) || 0)}</strong> <span className="muted">/ {p.weight}</span></td>
                   </tr>
                 ))}
                 <tr className="total">
-                  <td>total</td>
+                  <td colSpan={2}>total</td>
                   <td className="num"><strong>{total}</strong> <span className="muted">/ {JURY_RAW_MAX}</span></td>
                 </tr>
               </tbody>
