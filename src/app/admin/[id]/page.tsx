@@ -3,7 +3,7 @@ import { requireRole } from '@/lib/auth/session';
 import { getOrgForAdmin, listJurors, orgNeighbours } from '@/lib/queries';
 import { PARAMETERS, parseEntries } from '@/lib/rubric';
 import { snapshot } from '@/lib/scoring';
-import { ECOCIATE_MAX, JURY_MAX } from '@/lib/constants';
+import { ECOCIATE_MAX, JURY_MAX, JURY_RAW_MAX } from '@/lib/constants';
 import { Shell } from '@/components/Shell';
 import { PageBanner, Pill, ScoreBar, scoreTone } from '@/components/ui';
 import { OrgPager } from '@/components/OrgPager';
@@ -65,12 +65,16 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
                   return (
                     <div className="row" key={j.id} style={{ alignItems: 'center', padding: '4px 0' }}>
                       <span>{j.name}</span>
-                      <span><strong>{show(total)}</strong> <span className="muted small">/ {JURY_MAX}</span></span>
+                      <span><strong>{show(total)}</strong> <span className="muted small">/ {JURY_RAW_MAX}</span></span>
                     </div>
                   );
                 })}
                 <div className="row" style={{ alignItems: 'center', marginTop: 'var(--space-2)' }}>
                   <span>jury average <span className="muted small">({snap.juryCount} jurors)</span></span>
+                  <span><strong>{show(snap.juryAvgRaw)}</strong> <span className="muted small">/ {JURY_RAW_MAX}</span></span>
+                </div>
+                <div className="row" style={{ alignItems: 'center', marginTop: 'var(--space-1)' }}>
+                  <span>jury score <span className="muted small">(average scaled to {JURY_MAX})</span></span>
                   <span><strong>{show(snap.juryAvg)}</strong> <span className="muted small">/ {JURY_MAX}</span></span>
                 </div>
                 <div className="row" style={{ alignItems: 'center', borderTop: '1px solid var(--border-subtle)', marginTop: 'var(--space-3)', paddingTop: 'var(--space-3)' }}>
@@ -110,7 +114,7 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
                     </tr>
                   ))}
                   <tr style={{ background: 'var(--surface-tint)' }}>
-                    <td><strong>total</strong></td><td className="num muted">{JURY_MAX}</td>
+                    <td><strong>total</strong></td><td className="num muted">{JURY_RAW_MAX}</td>
                     {jurors.map((j) => <td key={j.id} className="num"><strong>{show(byJuror.get(j.id)?.total ?? null)}</strong></td>)}
                   </tr>
                 </tbody>

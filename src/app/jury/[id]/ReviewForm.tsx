@@ -5,7 +5,7 @@ import { useFormState, useFormStatus } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { submitReviewAction, clearReviewAction, type FormState } from '@/lib/actions';
 import { PARAMETERS, type ScoreEntry } from '@/lib/rubric';
-import { JURY_MAX } from '@/lib/constants';
+import { JURY_RAW_MAX } from '@/lib/constants';
 import { useToast } from '@/components/Toast';
 import Link from 'next/link';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
@@ -140,7 +140,7 @@ export function ReviewForm({ orgId, existing }: { orgId: string; existing: Score
           <div className="row" style={{ alignItems: 'center' }}>
             <div>
               <div className="small muted">final score</div>
-              <div className="big">{total} <small>/ {JURY_MAX}</small></div>
+              <div className="big">{total} <small>/ {JURY_RAW_MAX}</small></div>
             </div>
             <div className="small muted">{filled} of {PARAMETERS.length} scored</div>
           </div>
@@ -170,7 +170,7 @@ export function ReviewForm({ orgId, existing }: { orgId: string; existing: Score
                 ))}
                 <tr className="total">
                   <td>total</td>
-                  <td className="num"><strong>{total}</strong> <span className="muted">/ {JURY_MAX}</span></td>
+                  <td className="num"><strong>{total}</strong> <span className="muted">/ {JURY_RAW_MAX}</span></td>
                 </tr>
               </tbody>
             </table>

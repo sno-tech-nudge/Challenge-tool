@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { prisma } from './db';
 import { requireRole } from './auth/session';
 import { PARAMETERS, type ScoreEntry } from './rubric';
-import { ECOCIATE_MAX, JURY_MAX } from './constants';
+import { ECOCIATE_MAX, JURY_RAW_MAX } from './constants';
 import { logActivity } from './activity';
 
 export interface FormState {
@@ -51,7 +51,7 @@ export async function submitReviewAction(_prev: FormState, formData: FormData): 
     actor: user,
     action: previous ? 'REVIEW_UPDATED' : 'REVIEW_SUBMITTED',
     org,
-    detail: previous ? `total ${previous.total} → ${total} / ${JURY_MAX}` : `total ${total} / ${JURY_MAX}`,
+    detail: previous ? `total ${previous.total} → ${total} / ${JURY_RAW_MAX}` : `total ${total} / ${JURY_RAW_MAX}`,
   });
   refreshOrg(orgId);
   return { ok: true };
@@ -65,7 +65,7 @@ export async function clearReviewAction(orgId: string): Promise<FormState> {
     select: { total: true, org: { select: { id: true, name: true } } },
   });
   await prisma.juryScore.deleteMany({ where: { orgId, jurorId: user.id } });
-  if (existing) await logActivity({ actor: user, action: 'REVIEW_CLEARED', org: existing.org, detail: `was ${existing.total} / ${JURY_MAX}` });
+  if (existing) await logActivity({ actor: user, action: 'REVIEW_CLEARED', org: existing.org, detail: `was ${existing.total} / ${JURY_RAW_MAX}` });
   refreshOrg(orgId);
   return { ok: true };
 }

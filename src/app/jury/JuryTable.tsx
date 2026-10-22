@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Search, ChevronRight } from 'lucide-react';
-import { JURY_MAX } from '@/lib/constants';
+import { JURY_RAW_MAX } from '@/lib/constants';
 import { Pill, ScoreBar } from '@/components/ui';
 
 interface Row {
@@ -77,8 +77,8 @@ export function JuryTable({ orgs, done }: { orgs: Row[]; done: number }) {
                 <td className="num">
                   {o.myTotal === null ? <span className="muted">-</span> : (
                     <div style={{ display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'flex-end' }}>
-                      <ScoreBar value={o.myTotal} max={JURY_MAX} />
-                      <strong>{o.myTotal}</strong><span className="muted">/ {JURY_MAX}</span>
+                      <ScoreBar value={o.myTotal} max={JURY_RAW_MAX} />
+                      <strong>{o.myTotal}</strong><span className="muted">/ {JURY_RAW_MAX}</span>
                     </div>
                   )}
                 </td>

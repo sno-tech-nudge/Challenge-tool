@@ -92,25 +92,6 @@ function Blocks({ blocks }: { blocks: Block[] }) {
                 ))}
               </div>
             );
-          case 'facts':
-            return (
-              <dl key={i} className="od-facts">
-                {b.rows.map(([k, v]) => (
-                  <div key={k}><dt>{k}</dt><dd>{v}</dd></div>
-                ))}
-              </dl>
-            );
-          case 'remarks':
-            return (
-              <div key={i} className="od-remarks">
-                {b.rows.map((r) => (
-                  <div key={r.who} className="od-remark">
-                    <div><strong>{r.who}</strong><p>{r.text}</p></div>
-                    <span className="pill">{r.score}</span>
-                  </div>
-                ))}
-              </div>
-            );
           case 'swot':
             return (
               <div key={i} className="od-swot">

@@ -397,14 +397,6 @@ table.compact td .pre { max-width: 90px; }
 .od-people li { display: flex; gap: var(--space-3); align-items: center; }
 .od-avatar { width: 36px; height: 36px; display: grid; place-items: center; background: var(--surface-tint); color: var(--text-accent); border: 1px solid var(--border-subtle); font-size: 13px; font-weight: var(--fw-bold); flex-shrink: 0; }
 .od-pair { border-top: 1px solid var(--border-subtle); }
-.od-facts { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: var(--space-3); }
-.od-facts > div { border: 1px solid var(--border-subtle); padding: 10px var(--space-3); background: var(--surface-tint); }
-.od-facts dt { font-size: var(--fs-caption); color: var(--text-muted); }
-.od-facts dd { margin: 2px 0 0; font-size: 16px; font-weight: var(--fw-bold); }
-.od-remarks { display: grid; }
-.od-remark { display: flex; justify-content: space-between; gap: var(--space-3); padding: var(--space-2) 0; border-top: 1px solid var(--border-subtle); }
-.od-remark:first-child { border-top: none; padding-top: 0; }
-.od-remark p { margin: 2px 0 0; color: var(--text-secondary); }
 .od-swot { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
 .od-swot > div { border: 1px solid var(--border-subtle); border-top: 3px solid var(--border-strong); padding: 10px var(--space-3); }
 .od-swot .s { border-top-color: var(--status-good); }

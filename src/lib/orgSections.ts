@@ -11,13 +11,11 @@ export const ORG_SECTIONS: OrgSection[] = [
   { key: 'founders', title: 'Founder profiles', short: 'founders' },
   { key: 'brief', title: 'Organisation brief', short: 'brief' },
   { key: 'geography', title: 'Geographical coverage', short: 'geography' },
-  { key: 'wfps', title: 'No. of WFPs covered', short: 'WFPs covered' },
+  { key: 'wfps', title: 'Women foodpreneurs covered', short: 'women foodpreneurs covered' },
   { key: 'markets', title: 'Markets', note: 'market channel shift', short: 'markets' },
   { key: 'partnerships', title: 'Partnerships', short: 'partnerships' },
   { key: 'economics', title: 'Unit economics', short: 'unit economics' },
   { key: 'plan', title: 'Scalability Plan & Vision', short: 'scalability plan' },
-  { key: 'backup', title: 'Backup data table for all scoring items (quantitative aspects)', short: 'backup data' },
-  { key: 'scoresheets', title: 'Individual score sheets with remarks', short: 'score sheets' },
   { key: 'swot', title: 'SWOT', short: 'swot' },
 ];
 
@@ -33,8 +31,6 @@ export type Block =
   | { kind: 'items'; rows: { title: string; lines: [string, string][] }[] }
   | { kind: 'bullets'; items: string[] }
   | { kind: 'rows'; rows: { heading: string; text: string }[] }
-  | { kind: 'facts'; rows: [string, string][] }
-  | { kind: 'remarks'; rows: { who: string; text: string; score: string }[] }
   | { kind: 'swot'; s: string; w: string; o: string; t: string };
 
 /** PLACEHOLDER TEXT ONLY, so the layout can be judged. Entirely made up; no real organisation data.
@@ -65,19 +61,19 @@ export const SAMPLE: Record<string, Block[]> = {
     {
       kind: 'panels',
       panels: [
-        { title: 'Individuals', total: '30', lines: [['Existing', '22'], ['New', '8']] },
-        { title: 'Collectives', total: '6', lines: [['Existing', '4'], ['New', '2']] },
+        { title: 'Individuals', total: '30', lines: [] },
+        { title: 'Collectives', total: '6', lines: [] },
       ],
     },
   ],
   markets: [
-    { kind: 'compare', before: '2 channels, accessed by the women on their own', now: '5 channels, of which 3 were opened through the organisation' },
-    { kind: 'subhead', text: 'Channels the women were already using (baseline)' },
+    { kind: 'compare', before: '2 channels, accessed by the foodpreneurs on their own', now: '5 channels, of which 3 were opened through the organisation' },
+    { kind: 'subhead', text: 'Channels the foodpreneurs were already using' },
     {
       kind: 'items',
       rows: [
         { title: 'Neighbourhood and word-of-mouth sales', lines: [['Note', 'Self-accessed. Irregular orders, priced informally.']] },
-        { title: 'Local haat / weekly market', lines: [['Note', 'Self-accessed. Seasonal, dependent on travel and stall access.']] },
+        { title: 'Local haat/weekly market', lines: [['Note', 'Self-accessed. Seasonal, dependent on travel and stall access.']] },
       ],
     },
     { kind: 'subhead', text: 'Channels opened through the organisation (since intervention)' },
@@ -134,26 +130,6 @@ export const SAMPLE: Record<string, Block[]> = {
   plan: [
     { kind: 'p', text: 'Sample text: over the next year the team plans to double the number of active foodpreneurs, open a second shared kitchen, and test a simple ordering app.' },
     { kind: 'p', text: 'The longer vision is a self-sustaining network of neighbourhood food businesses.' },
-  ],
-  backup: [
-    {
-      kind: 'facts',
-      rows: [
-        ['Active foodpreneurs', '48'],
-        ['Average monthly sales per foodpreneur', 'sample value'],
-        ['Repeat customers', 'sample value'],
-        ['Survival after 6 months', 'sample value'],
-      ],
-    },
-  ],
-  scoresheets: [
-    {
-      kind: 'remarks',
-      rows: [
-        { who: 'Juror 1', text: 'Strong community trust, needs clearer pricing.', score: '32 / 40' },
-        { who: 'Juror 2', text: 'Good training model, small market reach so far.', score: '30 / 40' },
-      ],
-    },
   ],
   swot: [
     {

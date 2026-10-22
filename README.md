@@ -8,7 +8,7 @@ Two views over one panel of organisations:
 - **settings** (admin only, `/admin/settings`): **team** lists everyone who can sign in. Add a member with a name, a login id (email) and a password (there is a generate button), edit their name or id, reset their password, or remove them. A member who has submitted reviews cannot be removed, so their scores are never lost. **Activity log** records who submitted, updated or cleared a review, changed a verdict, edited the Ecociate score, or changed a team member, with the time in India time. Passwords are never written to the log.
 - Before a juror's review is saved, a summary of all 7 scores and the total is shown to confirm.
 
-Final score = Ecociate (already out of 60, entered as is) + average of submitted jury totals (out of 40). It shows `-` until both parts exist.
+Final score = Ecociate (already out of 60, entered as is) + the jury score. Each juror scores 7 parameters out of 100; the average of the jurors' totals is scaled to 40 (an average of 80 counts as 32). It shows `-` until both parts exist.
 
 Stack: Next.js 14, Prisma, **Postgres**. Hosted on Vercel.
 

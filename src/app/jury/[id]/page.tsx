@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation';
 import { requireRole } from '@/lib/auth/session';
 import { getOrgForJuror, orgNeighbours } from '@/lib/queries';
 import { parseEntries } from '@/lib/rubric';
-import { ECOCIATE_MAX } from '@/lib/constants';
 import { Shell } from '@/components/Shell';
 import { PageBanner, Pill } from '@/components/ui';
 import { OrgPager } from '@/components/OrgPager';
@@ -49,20 +48,6 @@ export default async function JuryOrgPage({ params }: { params: { id: string } }
               <p className="pre">{org.internalSwot || <span className="muted">none</span>}</p>
             </section>
 
-            <section className="card" id="ecociate">
-              <h2>ecociate score</h2>
-              {org.ecociateScore === null ? (
-                <p className="muted">not available yet.</p>
-              ) : (
-                <p className="big">{org.ecociateScore} <small>/ {ECOCIATE_MAX}</small></p>
-              )}
-              {org.ecociateRemarks && (
-                <>
-                  <h3>remarks</h3>
-                  <p className="pre">{org.ecociateRemarks}</p>
-                </>
-              )}
-            </section>
           </div>
 
           <div className="pane">
