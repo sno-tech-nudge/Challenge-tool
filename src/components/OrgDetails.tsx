@@ -39,10 +39,12 @@ function Blocks({ blocks }: { blocks: Block[] }) {
                   <h4>The model</h4>
                   <p>{b.model}</p>
                 </div>
-                <div className="od-callout">
-                  <h4>Barriers it addresses</h4>
-                  <ul className="od-bullets">{b.barriers.map((t) => <li key={t}>{t}</li>)}</ul>
-                </div>
+                {SHOW_BARRIERS && (
+                  <div className="od-callout">
+                    <h4>Barriers it addresses</h4>
+                    <ul className="od-bullets">{b.barriers.map((t) => <li key={t}>{t}</li>)}</ul>
+                  </div>
+                )}
               </div>
             );
           case 'names':
@@ -101,7 +103,7 @@ function Blocks({ blocks }: { blocks: Block[] }) {
           case 'rows':
             return (
               <div key={i} className="od-rows">
-                {b.rows.map((r) => (
+                {b.rows.filter((r) => SHOW_COST_MODEL || r.heading !== 'Organisational cost model').map((r) => (
                   <div key={r.heading} className="od-row"><h4>{r.heading}</h4><p>{r.text}</p></div>
                 ))}
               </div>
@@ -123,6 +125,10 @@ function Blocks({ blocks }: { blocks: Block[] }) {
 
 /** Body of the "organisation details" card: one tidy block per section, with a sticky contents
  *  bar to jump between them. Content is placeholder sample text for now. */
+/** Hidden for now at the team's request; the content stays in the data, so flip a flag to show it again. */
+const SHOW_BARRIERS = false;
+const SHOW_COST_MODEL = false;
+
 export function OrgDetails({ website, idPrefix, details }: { website: string | null; idPrefix: string; details: OrgDetailsData | null }) {
   // an organisation with nothing loaded yet shows the sample text, clearly marked
   const data = details ?? SAMPLE;
