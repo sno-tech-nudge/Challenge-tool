@@ -19,7 +19,7 @@ export default async function JuryOrgPage({ params }: { params: { id: string } }
 
   return (
     <Shell user={user}>
-      <div className="workspace">
+      <div className="workspace has-footer">
       <PageBanner compact
         eyebrow={org.slot ? `the aahaar bazaar challenge · jury review · slot ${org.slot}` : 'the aahaar bazaar challenge · jury review'}
         title={org.name}
@@ -43,10 +43,14 @@ export default async function JuryOrgPage({ params }: { params: { id: string } }
 
             <section className="card" id="internal">
               <h2>internal remarks</h2>
-              <h3>queries</h3>
-              <p className="pre">{org.internalQueries || <span className="muted">none</span>}</p>
-              <h3>swot</h3>
-              <p className="pre">{org.internalSwot || <span className="muted">none</span>}</p>
+              {org.internalQueries && (
+                <>
+                  <h3>queries</h3>
+                  <p className="pre">{org.internalQueries}</p>
+                </>
+              )}
+              <h3>your remarks</h3>
+              <p className="pre">{mine?.internalRemarks || <span className="muted">none yet. add them in the final verdict section at the bottom of the page.</span>}</p>
             </section>
 
           </div>
@@ -54,11 +58,12 @@ export default async function JuryOrgPage({ params }: { params: { id: string } }
           <div className="pane">
           <section className="card accent" id="review">
             <h2>start review</h2>
-            <p className="hint" style={{ marginBottom: 'var(--space-4)' }}>score all 7 parameters. you can come back and edit your scores at any time.</p>
-            <ReviewForm orgId={org.id} existing={mine ? parseEntries(mine.entries) : []} />
+            <p className="hint" style={{ marginBottom: 'var(--space-4)' }}>score all 6 criteria. you can come back and edit your scores at any time.</p>
+            <ReviewForm orgId={org.id} existing={mine ? parseEntries(mine.entries) : []} existingVerdict={mine?.verdict ?? null} existingRemarks={mine?.internalRemarks ?? ''} />
           </section>
           </div>
         </div>
+        <div id="jury-bottom" />
       </div>
       </div>
     </Shell>

@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useFormState } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { submitReviewAction, clearReviewAction, type FormState } from '@/lib/actions';
 import { PARAMETERS, SCORE_MIN, SCORE_MAX, SCORE_STEP, weightedPoints, computeTotal, type ScoreEntry } from '@/lib/rubric';
@@ -11,12 +12,9 @@ import { useToast } from '@/components/Toast';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { InfoDialog } from '@/components/InfoDialog';
 
-function Submit({ label, disabled }: { label: string; disabled: boolean }) {
-  const { pending } = useFormStatus();
-  return <button type="submit" className="btn" disabled={pending || disabled}>{pending ? 'saving…' : label}</button>;
-}
+const FORM_ID = 'review-form';
 
-export function ReviewForm({ orgId, existing }: { orgId: string; existing: ScoreEntry[] }) {
+export function ReviewForm({ orgId, existing, existingVerdict, existingRemarks }: { orgId: string; existing: ScoreEntry[]; existingVerdict: string | null; existingRemarks: string }) {
   const toast = useToast();
   const router = useRouter();
   const [state, action] = useFormState<FormState, FormData>(submitReviewAction, {});
@@ -25,7 +23,13 @@ export function ReviewForm({ orgId, existing }: { orgId: string; existing: Score
   const [scores, setScores] = React.useState<Record<string, string>>(initialScores);
   const initialRemarks = Object.fromEntries(PARAMETERS.map((p) => [p.key, byKey.get(p.key)?.remarks ?? '']));
   const [remarks, setRemarks] = React.useState<Record<string, string>>(initialRemarks);
+  const [verdict, setVerdict] = React.useState<string>(existingVerdict ?? '');
+  const [internal, setInternal] = React.useState(existingRemarks);
   const [dirty, setDirty] = React.useState(false);
+  const [submitting, setSubmitting] = React.useState(false);
+  // the verdict segment sits under both panes of the page, so it is drawn into a slot there
+  const [slot, setSlot] = React.useState<HTMLElement | null>(null);
+  React.useEffect(() => setSlot(document.getElementById('jury-bottom')), []);
   const [confirmClear, setConfirmClear] = React.useState(false);
   const [clearing, setClearing] = React.useState(false);
   // every submit goes through a summary dialog first; confirming re-submits the form once
@@ -44,11 +48,13 @@ export function ReviewForm({ orgId, existing }: { orgId: string; existing: Score
     return !Number.isFinite(n) || n < SCORE_MIN || n > SCORE_MAX || Math.round(n / SCORE_STEP) * SCORE_STEP !== n;
   };
   const anyInvalid = PARAMETERS.some((p) => invalid(p.key));
+  const canSubmit = filled === PARAMETERS.length && !anyInvalid && verdict !== '';
 
   // each submit produces a new state object: acknowledge a save once, or show the error
   React.useEffect(() => {
+    setSubmitting(false);
     if (state.ok) {
-      // a saved review is acknowledged with the thank-you window instead of the fading popup
+      // a saved review is acknowledged with the thank-you slide, then the person is taken back to the list
       setThanksOpen(true);
       setDirty(false);
     } else if (state.error) {
@@ -56,6 +62,12 @@ export function ReviewForm({ orgId, existing }: { orgId: string; existing: Score
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
+
+  React.useEffect(() => {
+    if (!thanksOpen) return;
+    const t = window.setTimeout(() => router.push('/jury'), 2600);
+    return () => window.clearTimeout(t);
+  }, [thanksOpen, router]);
 
   // warn before leaving with unsaved scores
   React.useEffect(() => {
@@ -74,11 +86,12 @@ export function ReviewForm({ orgId, existing }: { orgId: string; existing: Score
       return;
     }
     e.preventDefault();
-    if (filled === PARAMETERS.length && !anyInvalid) setSummaryOpen(true);
+    if (canSubmit) setSummaryOpen(true);
   }
 
   function confirmSubmit() {
     confirmed.current = true;
+    setSubmitting(true);
     setSummaryOpen(false);
     formRef.current?.requestSubmit();
   }
@@ -91,6 +104,8 @@ export function ReviewForm({ orgId, existing }: { orgId: string; existing: Score
     if (res.ok) {
       setScores(Object.fromEntries(PARAMETERS.map((p) => [p.key, ''])));
       setRemarks(Object.fromEntries(PARAMETERS.map((p) => [p.key, ''])));
+      setVerdict('');
+      setInternal('');
       setDirty(false);
       toast('review cleared');
       router.refresh();
@@ -99,7 +114,7 @@ export function ReviewForm({ orgId, existing }: { orgId: string; existing: Score
 
   return (
     <>
-      <form ref={formRef} action={action} onSubmit={onSubmit} onChange={() => setDirty(true)}>
+      <form id={FORM_ID} ref={formRef} action={action} onSubmit={onSubmit} onChange={() => setDirty(true)}>
         <input type="hidden" name="orgId" value={orgId} />
         {PARAMETERS.map((p, i) => {
           const n = Number(scores[p.key]) || 0;
@@ -158,15 +173,42 @@ export function ReviewForm({ orgId, existing }: { orgId: string; existing: Score
             </div>
             <div className="small muted">{filled} of {PARAMETERS.length} scored</div>
           </div>
+          <p className="hint" style={{ marginTop: 'var(--space-2)' }}>when all six are scored, give your final verdict at the bottom of the page and submit.</p>
+        </div>
+      </form>
+
+      {slot && createPortal(
+        <section className="card accent verdict-wide" id="your-verdict">
+          <h2>final verdict</h2>
+          <p className="hint" style={{ marginBottom: 'var(--space-3)' }}>would you back this organisation? this is your own call, separate from the scores above.</p>
+          <div className="verdict-grid">
+            <div>
+              <div className="small muted" style={{ marginBottom: 6, fontWeight: 600 }}>your verdict</div>
+              <div className="verdict-choice" role="radiogroup" aria-label="your final verdict">
+                {([['Y', 'yes'], ['N', 'no']] as const).map(([v, label]) => (
+                  <label key={v} className={verdict === v ? `on ${v === 'Y' ? 'yes' : 'no'}` : ''}>
+                    <input type="radio" name="verdict" value={v} form={FORM_ID} checked={verdict === v} onChange={() => setVerdict(v)} /> {label}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label htmlFor="internalRemarks">internal remarks</label>
+              <textarea id="internalRemarks" name="internalRemarks" form={FORM_ID} value={internal} onChange={(e) => setInternal(e.target.value)} placeholder="anything the team should know, or questions to follow up" />
+              <p className="hint" style={{ marginTop: 4 }}>shown to the admin team with your review, and in internal remarks on this page.</p>
+            </div>
+          </div>
           {state.error && <p className="err" role="alert">{state.error}</p>}
-          <div style={{ display: 'flex', gap: 'var(--space-3)', margin: 'var(--space-3) 0', flexWrap: 'wrap' }}>
-            <Submit label={existing.length ? 'update review' : 'submit review'} disabled={filled < PARAMETERS.length || anyInvalid} />
+          <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-4)', flexWrap: 'wrap', alignItems: 'center' }}>
+            <button type="submit" form={FORM_ID} className="btn" disabled={submitting || !canSubmit}>{submitting ? 'saving…' : existing.length ? 'update review' : 'submit review'}</button>
             {existing.length > 0 && (
               <button type="button" className="btn danger" onClick={() => setConfirmClear(true)}>clear my review</button>
             )}
+            {!canSubmit && <span className="hint">{filled < PARAMETERS.length ? 'score all six criteria' : verdict === '' ? 'choose yes or no' : 'fix the highlighted score'} to submit.</span>}
           </div>
-        </div>
-      </form>
+        </section>,
+        slot,
+      )}
 
       <ConfirmDialog
         open={summaryOpen}
@@ -190,6 +232,10 @@ export function ReviewForm({ orgId, existing }: { orgId: string; existing: Score
                   <td colSpan={2}>total</td>
                   <td className="num"><strong>{total}</strong> <span className="muted">/ {JURY_RAW_MAX}</span></td>
                 </tr>
+                <tr>
+                  <td colSpan={2}>your final verdict</td>
+                  <td className="num"><strong>{verdict === 'Y' ? 'yes' : verdict === 'N' ? 'no' : '-'}</strong></td>
+                </tr>
               </tbody>
             </table>
             <p className="hint" style={{ marginTop: 'var(--space-3)' }}>choose no to go back and revisit your scores.</p>
@@ -203,16 +249,11 @@ export function ReviewForm({ orgId, existing }: { orgId: string; existing: Score
 
       <InfoDialog
         open={thanksOpen}
-        title="thank you for submitting your scores"
-        onClose={() => setThanksOpen(false)}
-        actions={
-          <>
-            <button type="button" className="btn secondary" onClick={() => setThanksOpen(false)}>stay on this page</button>
-            <Link href="/jury" className="btn">back to the home screen</Link>
-          </>
-        }
+        title="thank you for your submission"
+        onClose={() => router.push('/jury')}
+        actions={<Link href="/jury" className="btn">back to organisations</Link>}
       >
-        your scores for this organisation have been saved.
+        your review has been saved. taking you back to the list of organisations.
       </InfoDialog>
 
       <ConfirmDialog

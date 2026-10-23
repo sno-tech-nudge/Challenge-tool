@@ -69,7 +69,6 @@ function Blocks({ blocks }: { blocks: Block[] }) {
           case 'compare':
             return (
               <div key={i} className="od-compare">
-                <div><h4>Before</h4><p>{b.before}</p></div>
                 <div className="now"><h4>Now</h4><p>{b.now}</p></div>
               </div>
             );
@@ -86,6 +85,15 @@ function Blocks({ blocks }: { blocks: Block[] }) {
                     </dl>
                   </div>
                 ))}
+              </div>
+            );
+          case 'table':
+            return (
+              <div key={i} className="od-table-wrap">
+                <table className="od-table">
+                  <thead><tr>{b.head.map((h) => <th key={h}>{h}</th>)}</tr></thead>
+                  <tbody>{b.rows.map((r, ri) => <tr key={ri}>{r.map((c, ci) => <td key={ci}>{c}</td>)}</tr>)}</tbody>
+                </table>
               </div>
             );
           case 'bullets':

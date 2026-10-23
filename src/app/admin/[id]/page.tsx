@@ -22,7 +22,7 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
 
   const snap = snapshot(org.ecociateScore, org.scores.map((s) => s.total));
   // one column per juror account, so a juror who has not scored yet still shows as an empty column
-  const byJuror = new Map(org.scores.map((s) => [s.jurorId, { total: s.total, entries: new Map(parseEntries(s.entries).map((e) => [e.key, e])) }]));
+  const byJuror = new Map(org.scores.map((s) => [s.jurorId, { total: s.total, verdict: s.verdict, entries: new Map(parseEntries(s.entries).map((e) => [e.key, e])) }]));
   const finalTone = snap.final === null ? null : scoreTone(snap.final, 100);
 
   return (
@@ -44,10 +44,23 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
             </section>
             <section className="card" id="internal">
               <h2>internal remarks</h2>
-              <h3>queries</h3>
-              <p className="pre">{org.internalQueries || <span className="muted">none</span>}</p>
-              <h3>swot</h3>
-              <p className="pre">{org.internalSwot || <span className="muted">none</span>}</p>
+              {org.internalQueries && (
+                <>
+                  <h3>queries</h3>
+                  <p className="pre">{org.internalQueries}</p>
+                </>
+              )}
+              <h3>jury remarks</h3>
+              {org.scores.some((x) => x.internalRemarks) ? (
+                org.scores.filter((x) => x.internalRemarks).map((x) => (
+                  <div key={x.id} className="remark">
+                    <div className="small muted">{x.juror.name}</div>
+                    <p className="pre">{x.internalRemarks}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="muted">none yet</p>
+              )}
             </section>
           </div>
 
@@ -117,6 +130,13 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
                   <tr style={{ background: 'var(--surface-tint)' }}>
                     <td><strong>total (weighted)</strong></td><td className="num muted">{JURY_RAW_MAX}</td>
                     {jurors.map((j) => <td key={j.id} className="num"><strong>{show(byJuror.get(j.id)?.total ?? null)}</strong></td>)}
+                  </tr>
+                  <tr>
+                    <td><strong>final verdict</strong></td><td className="num muted" />
+                    {jurors.map((j) => {
+                      const v = byJuror.get(j.id)?.verdict;
+                      return <td key={j.id} className="num">{v ? <Pill tone={v === 'Y' ? 'good' : 'bad'}>{v === 'Y' ? 'yes' : 'no'}</Pill> : <span className="muted">-</span>}</td>;
+                    })}
                   </tr>
                 </tbody>
               </table>

@@ -40,20 +40,24 @@ export async function submitReviewAction(_prev: FormState, formData: FormData): 
     }
     entries.push({ key: p.key, score, remarks: String(formData.get(`remarks_${p.key}`) ?? '').trim() });
   }
+  const v = String(formData.get('verdict') ?? '');
+  if (v !== 'Y' && v !== 'N') return { error: 'choose your final verdict: yes or no' };
+  const verdict = v;
+  const internalRemarks = String(formData.get('internalRemarks') ?? '').trim() || null;
   // each score is out of 10; the stored total is the weighted total out of 100
   const total = computeTotal(Object.fromEntries(entries.map((e) => [e.key, e.score])));
 
   const previous = await prisma.juryScore.findUnique({ where: { orgId_jurorId: { orgId, jurorId: user.id } }, select: { total: true } });
   await prisma.juryScore.upsert({
     where: { orgId_jurorId: { orgId, jurorId: user.id } },
-    create: { orgId, jurorId: user.id, entries: JSON.stringify(entries), total },
-    update: { entries: JSON.stringify(entries), total },
+    create: { orgId, jurorId: user.id, entries: JSON.stringify(entries), total, verdict, internalRemarks },
+    update: { entries: JSON.stringify(entries), total, verdict, internalRemarks },
   });
   await logActivity({
     actor: user,
     action: previous ? 'REVIEW_UPDATED' : 'REVIEW_SUBMITTED',
     org,
-    detail: previous ? `total ${previous.total} → ${total} / ${JURY_RAW_MAX}` : `total ${total} / ${JURY_RAW_MAX}`,
+    detail: (previous ? `total ${previous.total} → ${total} / ${JURY_RAW_MAX}` : `total ${total} / ${JURY_RAW_MAX}`) + `, verdict ${verdictWord(verdict)}`,
   });
   refreshOrg(orgId);
   return { ok: true };

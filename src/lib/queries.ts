@@ -32,8 +32,7 @@ export async function getOrgForJuror(orgId: string, jurorId: string) {
       about: true,
       details: true,
       internalQueries: true,
-      internalSwot: true,
-      scores: { where: { jurorId }, select: { entries: true, total: true } },
+      scores: { where: { jurorId }, select: { entries: true, total: true, verdict: true, internalRemarks: true } },
     },
   });
 }

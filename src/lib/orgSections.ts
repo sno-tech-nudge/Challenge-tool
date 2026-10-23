@@ -29,6 +29,7 @@ export type Block =
   | { kind: 'panels'; panels: { title: string; total: string; lines: [string, string][] }[] }
   | { kind: 'compare'; before: string; now: string }
   | { kind: 'items'; rows: { title: string; lines: [string, string][] }[] }
+  | { kind: 'table'; head: string[]; rows: string[][] }
   | { kind: 'bullets'; items: string[] }
   | { kind: 'rows'; rows: { heading: string; text: string }[] }
   | { kind: 'swot'; s: string | string[]; w: string | string[]; o: string | string[]; t: string | string[] };
@@ -137,7 +138,6 @@ export const SAMPLE: Record<string, Block[]> = {
       kind: 'rows',
       rows: [
         { heading: 'Solution model: revenue', text: 'To be filled from the factsheet: who exactly funds the solution work and its runway (grant-based funder model, end-consumer funded model), and which company, person or government.' },
-        { heading: 'Organisational cost model', text: 'To be filled from the factsheet: the cost of implementing the model, and the unit cost to the organisation of providing the solution to one new woman.' },
       ],
     },
   ],

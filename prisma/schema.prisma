@@ -65,6 +65,9 @@ model JuryScore {
   // JSON array of { key, score, remarks } — keys come from src/lib/rubric.ts
   entries   String
   total     Float
+  // the juror's own yes / no call ('Y' or 'N') and their internal remarks; null on older reviews
+  verdict         String?
+  internalRemarks String?
   updatedAt DateTime @updatedAt
 
   @@unique([orgId, jurorId])
