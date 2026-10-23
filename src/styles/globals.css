@@ -493,3 +493,7 @@ table.summary th { padding: 6px 12px; }
 .verdict-choice label.on.no { border-color: var(--status-bad); box-shadow: inset 0 0 0 1px var(--status-bad); background: var(--surface-tint); }
 .remark + .remark { margin-top: var(--space-3); }
 @media (max-width: 720px) { .verdict-grid { grid-template-columns: minmax(0, 1fr); } }
+
+.od-table.long th { width: 55%; text-transform: none; letter-spacing: 0; font-size: var(--fs-body); font-weight: var(--fw-regular); color: var(--text-secondary); background: transparent; border-bottom: 1px solid var(--border-subtle); }
+.od-table.long td { white-space: normal; border-bottom: 1px solid var(--border-subtle); }
+.od-table.long tr:last-child th, .od-table.long tr:last-child td { border-bottom: none; }

@@ -92,10 +92,17 @@ function Blocks({ blocks }: { blocks: Block[] }) {
           case 'table':
             return (
               <div key={i} className="od-table-wrap">
-                <table className="od-table">
-                  <thead><tr>{b.head.map((h) => <th key={h}>{h}</th>)}</tr></thead>
-                  <tbody>{b.rows.map((r, ri) => <tr key={ri}>{r.map((c, ci) => <td key={ci}>{c}</td>)}</tr>)}</tbody>
-                </table>
+                {b.rows.length === 1 ? (
+                  // one record reads best as a long table: a label and its value on each row
+                  <table className="od-table long">
+                    <tbody>{b.head.map((h, hi) => <tr key={h}><th scope="row">{h}</th><td>{b.rows[0][hi]}</td></tr>)}</tbody>
+                  </table>
+                ) : (
+                  <table className="od-table">
+                    <thead><tr>{b.head.map((h) => <th key={h}>{h}</th>)}</tr></thead>
+                    <tbody>{b.rows.map((r, ri) => <tr key={ri}>{r.map((c, ci) => <td key={ci}>{c}</td>)}</tr>)}</tbody>
+                  </table>
+                )}
               </div>
             );
           case 'bullets':
