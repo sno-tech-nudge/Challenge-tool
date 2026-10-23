@@ -371,11 +371,11 @@ table.compact td .pre { max-width: 90px; }
 .dp-logo { display: flex; align-items: baseline; gap: 0.12em; font-size: clamp(30px, 3.4vw, 46px); font-weight: var(--fw-light); letter-spacing: -0.01em; line-height: 1; }
 .dp-caret { font-weight: var(--fw-regular); }
 .dp-prize { font-weight: var(--fw-light); font-size: 0.82em; margin-left: 0.2em; }
-.dp-headline { display: flex; flex-direction: column; container-type: inline-size; letter-spacing: -0.025em; }
-/* sizes scale with the poster width so "aahaar" always fills the line */
-.dp-small { font-size: 13cqw; font-weight: var(--fw-light); line-height: 1; margin-bottom: 0.2em; }
-.dp-big { font-size: 31cqw; font-weight: 600; line-height: 0.98; }
-.dp-mid { font-size: 22cqw; font-weight: 600; line-height: 1; margin-top: 0.22em; }
+.dp-headline { display: flex; flex-direction: column; container-type: inline-size; letter-spacing: -0.025em; --s: min(25cqw, calc((100vh - 270px) / 3.8)); }
+/* sizes follow the poster width and the screen height, so the whole poster fits on one screen without scrolling */
+.dp-small { font-size: calc(var(--s) * 0.42); font-weight: var(--fw-light); line-height: 1; margin-bottom: 0.2em; }
+.dp-big { font-size: var(--s); font-weight: 600; line-height: 0.98; }
+.dp-mid { font-size: calc(var(--s) * 0.71); font-weight: 600; line-height: 1; margin-top: 0.22em; }
 .dp-tagline { font-size: clamp(16px, 1.7vw, 24px); font-weight: var(--fw-semibold); line-height: 1.3; max-width: 30em; }
 @media (max-width: 860px) {
   .login-split { grid-template-columns: minmax(0, 1fr); }
@@ -497,3 +497,13 @@ table.summary th { padding: 6px 12px; }
 .od-table.long th { width: 55%; text-transform: none; letter-spacing: 0; font-size: var(--fs-body); font-weight: var(--fw-regular); color: var(--text-secondary); background: transparent; border-bottom: 1px solid var(--border-subtle); }
 .od-table.long td { white-space: normal; border-bottom: 1px solid var(--border-subtle); }
 .od-table.long tr:last-child th, .od-table.long tr:last-child td { border-bottom: none; }
+
+@media (min-width: 861px) {
+  .login-split { height: 100vh; min-height: 0; overflow: hidden; }
+  .login-right { overflow: hidden; }
+}
+
+@media (max-width: 860px) {
+  .dp-headline { --s: 25cqw; }
+  .login-right { gap: var(--space-5); padding: var(--space-5); }
+}
