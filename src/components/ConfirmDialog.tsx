@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useOverlay } from './Overlay';
+import { useOverlay, Portal } from './Overlay';
 
 /** Controlled confirmation dialog. Cancel is focused first so Enter never confirms by accident. */
 export function ConfirmDialog({
@@ -30,6 +30,7 @@ export function ConfirmDialog({
   const ref = useOverlay(open, onCancel);
   const titleId = React.useId();
   return (
+    <Portal>
     <div className="overlay" data-open={open} aria-hidden={!open}>
       <div className="overlay-scrim" onClick={onCancel} />
       <div ref={ref} className={`dialog${wide ? ' wide' : ''}`} role="alertdialog" aria-modal="true" aria-labelledby={titleId}>
@@ -43,5 +44,6 @@ export function ConfirmDialog({
         </div>
       </div>
     </div>
+    </Portal>
   );
 }

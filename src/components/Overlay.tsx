@@ -1,6 +1,15 @@
 'use client';
 
 import React from 'react';
+import { createPortal } from 'react-dom';
+
+/** Draws its children at the top level of the page. Overlays rendered inside a sticky or scrolling
+ *  column would otherwise be trapped under the site header and the page banner. */
+export function Portal({ children }: { children: React.ReactNode }) {
+  const [ready, setReady] = React.useState(false);
+  React.useEffect(() => setReady(true), []);
+  return ready ? createPortal(children, document.body) : null;
+}
 
 /** Shared open/close behaviour for the side panel and the dialog: Esc closes, the page behind stops
  *  scrolling, focus moves in on open and is handed back to whatever opened it, and Tab stays inside. */

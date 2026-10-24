@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useOverlay } from './Overlay';
+import { useOverlay, Portal } from './Overlay';
 
 /** A dialog that stays until the person chooses what to do next (unlike the auto-fading popup).
  *  `actions` holds the buttons or links; Esc and the scrim call `onClose`. */
@@ -21,6 +21,7 @@ export function InfoDialog({
   const ref = useOverlay(open, onClose);
   const titleId = React.useId();
   return (
+    <Portal>
     <div className="overlay" data-open={open} aria-hidden={!open}>
       <div className="overlay-scrim" onClick={onClose} />
       <div ref={ref} className="dialog" role="dialog" aria-modal="true" aria-labelledby={titleId}>
@@ -30,5 +31,6 @@ export function InfoDialog({
         <div className="dialog-actions">{actions}</div>
       </div>
     </div>
+    </Portal>
   );
 }

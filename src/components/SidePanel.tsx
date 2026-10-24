@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { X } from 'lucide-react';
-import { useOverlay } from './Overlay';
+import { useOverlay, Portal } from './Overlay';
 
 /** Button that slides a panel in from the right. Closes on Esc, the X, or a click on the scrim.
  *  Client components can pass a function as children to get a `close` callback (e.g. to shut the
@@ -31,18 +31,21 @@ export function SidePanel({
         {icon}
         <span className="btn-label">{label}</span>
       </button>
+      <Portal>
       <div className="overlay" data-open={open} aria-hidden={!open}>
         <div className="overlay-scrim" onClick={close} />
         <div ref={ref} className="panel" role="dialog" aria-modal="true" aria-labelledby={titleId}>
           <div className="panel-head">
             <h2 id={titleId}>{title}</h2>
-            <button type="button" className="btn ghost sm" onClick={close} aria-label="close panel" data-autofocus>
-              <X size={18} strokeLinejoin="miter" strokeLinecap="square" />
+            <button type="button" className="btn secondary sm" onClick={close} aria-label="close panel" data-autofocus>
+              <X size={16} strokeLinejoin="miter" strokeLinecap="square" />
+              <span className="btn-label">close</span>
             </button>
           </div>
           <div className="panel-body">{typeof children === 'function' ? children(close) : children}</div>
         </div>
       </div>
+      </Portal>
     </>
   );
 }
