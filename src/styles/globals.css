@@ -510,3 +510,6 @@ table.summary th { padding: 6px 12px; }
 .guide-card .row { flex-wrap: nowrap; align-items: center; gap: var(--space-4); }
 .guide-card .hint { margin: 2px 0 0; }
 .guide-card h2 { font-size: var(--fs-h3, 18px); }
+
+/* a little breathing room between bullet points everywhere */
+.od-bullets li + li, .param-help li + li, .guide li + li { margin-top: 6px; }
