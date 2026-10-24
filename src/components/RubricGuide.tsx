@@ -1,5 +1,6 @@
 import { PARAMETERS, SCORE_SCALE, SCORE_MAX } from '@/lib/rubric';
-import { ECOCIATE_MAX, JURY_MAX, JURY_RAW_MAX } from '@/lib/constants';
+import { toJuryScale } from '@/lib/scoring';
+import { ECOCIATE_MAX, JURY_MAX } from '@/lib/constants';
 
 /** Content for the "scoring guide" side panel, shown to both roles: how the evaluation works, how
  *  scoring works, the scale, and each criterion with its questions. */
@@ -14,12 +15,12 @@ export function RubricGuide() {
 
       <h3>how scoring works</h3>
       <p className="small">
-        score every criterion out of {SCORE_MAX}. the score is scaled to the criterion's weightage, so your six scores add up to a total out of {JURY_RAW_MAX}:
+        score every criterion out of {SCORE_MAX}. each criterion carries a weightage, and your six scores combine into a total out of {JURY_MAX}:
       </p>
-      <p className="small guide-formula">weighted points = (score ÷ {SCORE_MAX}) × weightage</p>
+      <p className="small guide-formula">points = (score ÷ {SCORE_MAX}) × weightage × {JURY_MAX / 100}</p>
       <p className="small">
-        for example, 8 on economic viability (25%) gives 20 of 25 points, while the same 8 on focus on the TG (7.5%) gives 6 of 7.5. the average of all jurors' totals is scaled to {JURY_MAX} for the final score.
-        the scaling is calculated automatically.
+        for example, 8 on economic viability (25% weightage, worth {toJuryScale(25)} points) gives {toJuryScale((8 / SCORE_MAX) * 25)} of {toJuryScale(25)}, while the same 8 on focus on the TG (7.5% weightage, worth {toJuryScale(7.5)} points) gives {toJuryScale((8 / SCORE_MAX) * 7.5)} of {toJuryScale(7.5)}.
+        the average of all jurors' totals is added to the M&amp;E score for the final score. the calculation is automatic.
       </p>
 
       <h3>scoring scale</h3>

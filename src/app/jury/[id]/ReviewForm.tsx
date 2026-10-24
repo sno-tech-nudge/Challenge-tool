@@ -7,7 +7,8 @@ import { useFormState } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { submitReviewAction, clearReviewAction, type FormState } from '@/lib/actions';
 import { PARAMETERS, SCORE_MIN, SCORE_MAX, SCORE_STEP, weightedPoints, computeTotal, type ScoreEntry } from '@/lib/rubric';
-import { JURY_RAW_MAX } from '@/lib/constants';
+import { JURY_MAX } from '@/lib/constants';
+import { toJuryScale } from '@/lib/scoring';
 import { useToast } from '@/components/Toast';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { InfoDialog } from '@/components/InfoDialog';
@@ -48,11 +49,26 @@ export function ReviewForm({ orgId, existing, existingVerdict, existingRemarks }
     return !Number.isFinite(n) || n < SCORE_MIN || n > SCORE_MAX || Math.round(n / SCORE_STEP) * SCORE_STEP !== n;
   };
   const anyInvalid = PARAMETERS.some((p) => invalid(p.key));
-  const canSubmit = filled === PARAMETERS.length && !anyInvalid && verdict !== '';
+  const canSubmit = filled === PARAMETERS.length && !anyInvalid && verdict !== '' && internal.trim() !== '';
 
   // each submit produces a new state object: acknowledge a save once, or show the error
+  // saving re-renders the page, which can remount this form and drop its state before the thank-you
+  // shows. A short-lived note in sessionStorage lets a remounted form still open it.
+  const pendingKey = `review-pending:${orgId}`;
+  React.useEffect(() => {
+    try {
+      const at = Number(sessionStorage.getItem(pendingKey));
+      if (at && Date.now() - at < 30000 && existing.length > 0) {
+        sessionStorage.removeItem(pendingKey);
+        setThanksOpen(true);
+      }
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   React.useEffect(() => {
     setSubmitting(false);
+    try { sessionStorage.removeItem(pendingKey); } catch {}
     if (state.ok) {
       // a saved review is acknowledged with the thank-you slide, then the person is taken back to the list
       setThanksOpen(true);
@@ -65,7 +81,7 @@ export function ReviewForm({ orgId, existing, existingVerdict, existingRemarks }
 
   React.useEffect(() => {
     if (!thanksOpen) return;
-    const t = window.setTimeout(() => router.push('/jury'), 2600);
+    const t = window.setTimeout(() => router.push('/jury'), 4500);
     return () => window.clearTimeout(t);
   }, [thanksOpen, router]);
 
@@ -91,6 +107,7 @@ export function ReviewForm({ orgId, existing, existingVerdict, existingRemarks }
 
   function confirmSubmit() {
     confirmed.current = true;
+    try { sessionStorage.setItem(pendingKey, String(Date.now())); } catch {}
     setSubmitting(true);
     setSummaryOpen(false);
     formRef.current?.requestSubmit();
@@ -151,9 +168,6 @@ export function ReviewForm({ orgId, existing, existingVerdict, existingRemarks }
                     onChange={(e) => setScores({ ...scores, [p.key]: e.target.value })}
                     onWheel={(e) => e.currentTarget.blur()}
                   />
-                  <div className="hint" style={{ marginTop: 4 }}>
-                    = {scores[p.key] !== '' && !invalid(p.key) ? weightedPoints(p, n) : '-'} of {p.weight} points
-                  </div>
                 </div>
                 <div style={{ flex: '1 1 200px' }}>
                   <label htmlFor={`remarks_${p.key}`}>remarks</label>
@@ -169,7 +183,7 @@ export function ReviewForm({ orgId, existing, existingVerdict, existingRemarks }
           <div className="row" style={{ alignItems: 'center' }}>
             <div>
               <div className="small muted">your total</div>
-              <div className="big">{total} <small>/ {JURY_RAW_MAX}</small></div>
+              <div className="big">{toJuryScale(total)} <small>/ {JURY_MAX}</small></div>
             </div>
             <div className="small muted">{filled} of {PARAMETERS.length} scored</div>
           </div>
@@ -193,9 +207,9 @@ export function ReviewForm({ orgId, existing, existingVerdict, existingRemarks }
               </div>
             </div>
             <div>
-              <label htmlFor="internalRemarks">internal remarks</label>
-              <textarea id="internalRemarks" name="internalRemarks" form={FORM_ID} value={internal} onChange={(e) => setInternal(e.target.value)} placeholder="anything the team should know, or questions to follow up" />
-              <p className="hint" style={{ marginTop: 4 }}>shown to the admin team with your review, and in internal remarks on this page.</p>
+              <label htmlFor="internalRemarks">comment section (required)</label>
+              <textarea id="internalRemarks" name="internalRemarks" form={FORM_ID} value={internal} onChange={(e) => setInternal(e.target.value)} required placeholder="the reasoning behind your scores and verdict" />
+              <p className="hint" style={{ marginTop: 4 }}>shown to the admin team with your review.</p>
             </div>
           </div>
           {state.error && <p className="err" role="alert">{state.error}</p>}
@@ -204,7 +218,7 @@ export function ReviewForm({ orgId, existing, existingVerdict, existingRemarks }
             {existing.length > 0 && (
               <button type="button" className="btn danger" onClick={() => setConfirmClear(true)}>clear my review</button>
             )}
-            {!canSubmit && <span className="hint">{filled < PARAMETERS.length ? 'score all six criteria' : verdict === '' ? 'choose yes or no' : 'fix the highlighted score'} to submit.</span>}
+            {!canSubmit && <span className="hint">{filled < PARAMETERS.length ? 'score all six criteria' : anyInvalid ? 'fix the highlighted score' : verdict === '' ? 'choose yes or no' : 'add a comment'} to submit.</span>}
           </div>
         </section>,
         slot,
@@ -225,12 +239,12 @@ export function ReviewForm({ orgId, existing, existingVerdict, existingRemarks }
                   <tr key={p.key}>
                     <td>{i + 1}. {p.label}</td>
                     <td className="num"><strong>{Number(scores[p.key]) || 0}</strong> <span className="muted">/ {SCORE_MAX}</span></td>
-                    <td className="num"><strong>{weightedPoints(p, Number(scores[p.key]) || 0)}</strong> <span className="muted">/ {p.weight}</span></td>
+                    <td className="num"><strong>{toJuryScale(weightedPoints(p, Number(scores[p.key]) || 0))}</strong> <span className="muted">/ {toJuryScale(p.weight)}</span></td>
                   </tr>
                 ))}
                 <tr className="total">
                   <td colSpan={2}>total</td>
-                  <td className="num"><strong>{total}</strong> <span className="muted">/ {JURY_RAW_MAX}</span></td>
+                  <td className="num"><strong>{toJuryScale(total)}</strong> <span className="muted">/ {JURY_MAX}</span></td>
                 </tr>
                 <tr>
                   <td colSpan={2}>your final verdict</td>
@@ -249,11 +263,11 @@ export function ReviewForm({ orgId, existing, existingVerdict, existingRemarks }
 
       <InfoDialog
         open={thanksOpen}
-        title="thank you for your submission"
+        title="thank you for submitting your scores and verdict"
         onClose={() => router.push('/jury')}
-        actions={<Link href="/jury" className="btn">back to organisations</Link>}
+        actions={<Link href="/jury" className="btn">back to the homepage</Link>}
       >
-        your review has been saved. taking you back to the list of organisations.
+        your review has been saved. you will be taken back to the homepage in a moment.
       </InfoDialog>
 
       <ConfirmDialog

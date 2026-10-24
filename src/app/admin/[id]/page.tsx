@@ -2,13 +2,14 @@ import { notFound } from 'next/navigation';
 import { requireRole } from '@/lib/auth/session';
 import { getOrgForAdmin, listJurors, orgNeighbours } from '@/lib/queries';
 import { PARAMETERS, parseEntries } from '@/lib/rubric';
-import { snapshot } from '@/lib/scoring';
+import { snapshot, toJuryScale } from '@/lib/scoring';
 import { parseDetails } from '@/lib/orgSections';
-import { ECOCIATE_MAX, JURY_MAX, JURY_RAW_MAX } from '@/lib/constants';
+import { ECOCIATE_MAX, JURY_MAX } from '@/lib/constants';
 import { Shell } from '@/components/Shell';
 import { PageBanner, Pill, ScoreBar, scoreTone } from '@/components/ui';
 import { OrgPager } from '@/components/OrgPager';
 import { OrgDetails } from '@/components/OrgDetails';
+import { InternalQueries } from '@/components/InternalQueries';
 import { VerdictForm, EcociateForm } from './AdminForms';
 
 export const dynamic = 'force-dynamic';
@@ -44,13 +45,8 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
             </section>
             <section className="card" id="internal">
               <h2>internal remarks</h2>
-              {org.internalQueries && (
-                <>
-                  <h3>queries</h3>
-                  <p className="pre">{org.internalQueries}</p>
-                </>
-              )}
-              <h3>jury remarks</h3>
+              <InternalQueries text={org.internalQueries} />
+              <h3>jury comments</h3>
               {org.scores.some((x) => x.internalRemarks) ? (
                 org.scores.filter((x) => x.internalRemarks).map((x) => (
                   <div key={x.id} className="remark">
@@ -75,20 +71,17 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
                 <h3>jury scores</h3>
                 {jurors.length === 0 && <p className="muted small">no jurors yet.</p>}
                 {jurors.map((j) => {
-                  const total = byJuror.get(j.id)?.total ?? null;
+                  const raw = byJuror.get(j.id)?.total ?? null;
+                  const total = raw === null ? null : toJuryScale(raw);
                   return (
                     <div className="row" key={j.id} style={{ alignItems: 'center', padding: '4px 0' }}>
                       <span>{j.name}</span>
-                      <span><strong>{show(total)}</strong> <span className="muted small">/ {JURY_RAW_MAX}</span></span>
+                      <span><strong>{show(total)}</strong> <span className="muted small">/ {JURY_MAX}</span></span>
                     </div>
                   );
                 })}
                 <div className="row" style={{ alignItems: 'center', marginTop: 'var(--space-2)' }}>
-                  <span>jury average <span className="muted small">({snap.juryCount} jurors)</span></span>
-                  <span><strong>{show(snap.juryAvgRaw)}</strong> <span className="muted small">/ {JURY_RAW_MAX}</span></span>
-                </div>
-                <div className="row" style={{ alignItems: 'center', marginTop: 'var(--space-1)' }}>
-                  <span>jury score <span className="muted small">(average scaled to {JURY_MAX})</span></span>
+                  <span>jury score <span className="muted small">(average of {snap.juryCount} {snap.juryCount === 1 ? 'juror' : 'jurors'})</span></span>
                   <span><strong>{show(snap.juryAvg)}</strong> <span className="muted small">/ {JURY_MAX}</span></span>
                 </div>
                 <div className="row" style={{ alignItems: 'center', borderTop: '1px solid var(--border-subtle)', marginTop: 'var(--space-3)', paddingTop: 'var(--space-3)' }}>
@@ -103,7 +96,7 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
                 <EcociateForm orgId={org.id} score={org.ecociateScore} remarks={org.ecociateRemarks ?? ''} />
               </section>
             <section className="card scroll" id="jury" style={{ padding: 0 }}>
-              <div style={{ padding: 'var(--space-5) var(--space-5) var(--space-3)' }}><h2 style={{ margin: 0 }}>jury scores by juror</h2><p className="hint" style={{ marginTop: 4 }}>each score is out of 10; the total is weighted out of {JURY_RAW_MAX}.</p></div>
+              <div style={{ padding: 'var(--space-5) var(--space-5) var(--space-3)' }}><h2 style={{ margin: 0 }}>jury scores by juror</h2><p className="hint" style={{ marginTop: 4 }}>each score is out of 10; the total is weighted out of {JURY_MAX}.</p></div>
               <table className="compact">
                 <thead>
                   <tr>
@@ -128,8 +121,8 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
                     </tr>
                   ))}
                   <tr style={{ background: 'var(--surface-tint)' }}>
-                    <td><strong>total (weighted)</strong></td><td className="num muted">{JURY_RAW_MAX}</td>
-                    {jurors.map((j) => <td key={j.id} className="num"><strong>{show(byJuror.get(j.id)?.total ?? null)}</strong></td>)}
+                    <td><strong>total (weighted)</strong></td><td className="num muted">{JURY_MAX}</td>
+                    {jurors.map((j) => { const t = byJuror.get(j.id)?.total; return <td key={j.id} className="num"><strong>{t === undefined ? '-' : toJuryScale(t)}</strong></td>; })}
                   </tr>
                   <tr>
                     <td><strong>final verdict</strong></td><td className="num muted" />

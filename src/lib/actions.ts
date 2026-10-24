@@ -4,7 +4,8 @@ import { revalidatePath } from 'next/cache';
 import { prisma } from './db';
 import { requireRole } from './auth/session';
 import { PARAMETERS, SCORE_MIN, SCORE_MAX, SCORE_STEP, computeTotal, type ScoreEntry } from './rubric';
-import { ECOCIATE_MAX, JURY_RAW_MAX } from './constants';
+import { ECOCIATE_MAX, JURY_MAX } from './constants';
+import { toJuryScale } from './scoring';
 import { logActivity } from './activity';
 
 export interface FormState {
@@ -43,7 +44,8 @@ export async function submitReviewAction(_prev: FormState, formData: FormData): 
   const v = String(formData.get('verdict') ?? '');
   if (v !== 'Y' && v !== 'N') return { error: 'choose your final verdict: yes or no' };
   const verdict = v;
-  const internalRemarks = String(formData.get('internalRemarks') ?? '').trim() || null;
+  const internalRemarks = String(formData.get('internalRemarks') ?? '').trim();
+  if (!internalRemarks) return { error: 'add a comment before submitting' };
   // each score is out of 10; the stored total is the weighted total out of 100
   const total = computeTotal(Object.fromEntries(entries.map((e) => [e.key, e.score])));
 
@@ -57,7 +59,7 @@ export async function submitReviewAction(_prev: FormState, formData: FormData): 
     actor: user,
     action: previous ? 'REVIEW_UPDATED' : 'REVIEW_SUBMITTED',
     org,
-    detail: (previous ? `total ${previous.total} → ${total} / ${JURY_RAW_MAX}` : `total ${total} / ${JURY_RAW_MAX}`) + `, verdict ${verdictWord(verdict)}`,
+    detail: (previous ? `total ${toJuryScale(previous.total)} → ${toJuryScale(total)} / ${JURY_MAX}` : `total ${toJuryScale(total)} / ${JURY_MAX}`) + `, verdict ${verdictWord(verdict)}`,
   });
   refreshOrg(orgId);
   return { ok: true };
@@ -71,7 +73,7 @@ export async function clearReviewAction(orgId: string): Promise<FormState> {
     select: { total: true, org: { select: { id: true, name: true } } },
   });
   await prisma.juryScore.deleteMany({ where: { orgId, jurorId: user.id } });
-  if (existing) await logActivity({ actor: user, action: 'REVIEW_CLEARED', org: existing.org, detail: `was ${existing.total} / ${JURY_RAW_MAX}` });
+  if (existing) await logActivity({ actor: user, action: 'REVIEW_CLEARED', org: existing.org, detail: `was ${toJuryScale(existing.total)} / ${JURY_MAX}` });
   refreshOrg(orgId);
   return { ok: true };
 }

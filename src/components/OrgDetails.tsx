@@ -11,7 +11,7 @@ function Points({ v }: { v: string | string[] }) {
   return <ul className="od-bullets">{v.map((t) => <li key={t}>{t}</li>)}</ul>;
 }
 
-function Blocks({ blocks }: { blocks: Block[] }) {
+function Blocks({ blocks, website }: { blocks: Block[]; website: string | null }) {
   return (
     <>
       {blocks.map((b, i) => {
@@ -35,8 +35,15 @@ function Blocks({ blocks }: { blocks: Block[] }) {
             return (
               <div key={i} className="od-brief">
                 <p className="od-p">{b.description}</p>
+                {website && (
+                  <p className="small od-site">
+                    <a href={website} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+                      {website} <ExternalLink size={13} aria-hidden="true" />
+                    </a>
+                  </p>
+                )}
                 <div className="od-callout">
-                  <h4>The model</h4>
+                  <h4>The solution</h4>
                   <p>{b.model}</p>
                 </div>
                 {SHOW_BARRIERS && (
@@ -61,6 +68,7 @@ function Blocks({ blocks }: { blocks: Block[] }) {
                   <div key={p.title} className="od-panel">
                     <h4>{p.title}</h4>
                     <div className="od-total">{p.total}</div>
+                    {p.note && <div className="od-pnote">{p.note}</div>}
                     {p.lines.map(([k, v]) => (
                       <div key={k} className="od-line"><span>{k}</span><strong>{v}</strong></div>
                     ))}
@@ -142,14 +150,6 @@ export function OrgDetails({ website, idPrefix, details }: { website: string | n
   const sections = ORG_SECTIONS.filter((s) => (data[s.key]?.length ?? 0) > 0);
   return (
     <div className="od">
-      {website && (
-        <p className="small" style={{ marginBottom: 'var(--space-3)' }}>
-          <a href={website} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
-            {website} <ExternalLink size={13} aria-hidden="true" />
-          </a>
-        </p>
-      )}
-
       {!details && <p className="od-sample">sample content: this organisation's real details have not been loaded yet.</p>}
 
       <nav className="od-nav" aria-label="jump to a section">
@@ -165,7 +165,7 @@ export function OrgDetails({ website, idPrefix, details }: { website: string | n
             {s.note && <span className="od-note"> ({s.note})</span>}
           </h3>
           <div className="od-body">
-            <Blocks blocks={data[s.key]} />
+            <Blocks blocks={data[s.key]} website={website} />
           </div>
         </section>
       ))}

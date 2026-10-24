@@ -1,11 +1,14 @@
 import { prisma } from './db';
 import { snapshot } from './scoring';
 
+/** Alphabetical, ignoring case, so a name like "bettrlabs" sits among the others. The database sorts
+ *  upper case before lower case, so lists are ordered here instead. */
+const byName = (a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' });
+
 /** Jury list: every org, plus only THIS juror's own total. Other jurors' scores never leave the
  *  server on a jury route. */
 export async function listOrgsForJuror(jurorId: string) {
-  const orgs = await prisma.org.findMany({
-    orderBy: { name: 'asc' },
+  const orgs = (await prisma.org.findMany({
     select: {
       id: true,
       name: true,
@@ -13,7 +16,7 @@ export async function listOrgsForJuror(jurorId: string) {
       sector: true,
       scores: { where: { jurorId }, select: { total: true } },
     },
-  });
+  })).sort(byName);
   return orgs.map(({ scores, ...o }) => ({ ...o, myTotal: scores[0]?.total ?? null }));
 }
 
@@ -38,10 +41,9 @@ export async function getOrgForJuror(orgId: string, jurorId: string) {
 }
 
 export async function listSnapshot() {
-  const orgs = await prisma.org.findMany({
-    orderBy: { name: 'asc' },
+  const orgs = (await prisma.org.findMany({
     include: { scores: { select: { total: true } } },
-  });
+  })).sort(byName);
   return orgs.map((o) => ({
     id: o.id,
     name: o.name,
@@ -64,7 +66,7 @@ export async function listJurors() {
 
 /** Previous / next organisation in the same alphabetical order the lists use. */
 export async function orgNeighbours(orgId: string) {
-  const ids = (await prisma.org.findMany({ orderBy: { name: 'asc' }, select: { id: true } })).map((o) => o.id);
+  const ids = (await prisma.org.findMany({ select: { id: true, name: true } })).sort(byName).map((o) => o.id);
   const i = ids.indexOf(orgId);
   return {
     prevId: i > 0 ? ids[i - 1] : null,

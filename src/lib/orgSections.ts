@@ -14,7 +14,7 @@ export const ORG_SECTIONS: OrgSection[] = [
   { key: 'wfps', title: 'Women foodpreneurs covered', short: 'women foodpreneurs covered' },
   { key: 'markets', title: 'Markets', note: 'market channel shift', short: 'markets' },
   { key: 'partnerships', title: 'Partnerships', short: 'partnerships' },
-  { key: 'economics', title: 'Unit economics', short: 'unit economics' },
+  // 'economics' (unit economics) is hidden for now at the team's request; its content stays in the data
   { key: 'plan', title: 'Scalability Plan & Vision', short: 'scalability plan' },
   { key: 'swot', title: 'SWOT', short: 'swot' },
 ];
@@ -26,7 +26,7 @@ export type Block =
   | { kind: 'people'; rows: { name: string; role: string }[] }
   | { kind: 'brief'; description: string; model: string; barriers: string[] }
   | { kind: 'names'; label: string; items: string[] }
-  | { kind: 'panels'; panels: { title: string; total: string; lines: [string, string][] }[] }
+  | { kind: 'panels'; panels: { title: string; total: string; note?: string; lines: [string, string][] }[] }
   | { kind: 'compare'; before: string; now: string }
   | { kind: 'items'; rows: { title: string; lines: [string, string][] }[] }
   | { kind: 'table'; head: string[]; rows: string[][] }

@@ -26,4 +26,7 @@ export function snapshot(ecociate: number | null, juryTotals: number[]): Snapsho
   };
 }
 
+/** One juror's weighted total (stored out of 100) shown on the jury scale, out of 40. */
+export const toJuryScale = (raw: number) => round1((raw * JURY_MAX) / JURY_RAW_MAX);
+
 export const fmt = (n: number | null, dash = '-') => (n === null ? dash : String(n));
