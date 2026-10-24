@@ -366,9 +366,10 @@ table.compact td .pre { max-width: 90px; }
 .login-left { display: flex; align-items: center; justify-content: center; min-width: 0; padding: var(--space-8) var(--space-6); }
 .login-card { width: min(380px, 100%); min-width: 0; }
 .login-right { background: #730000; color: #fff; padding: clamp(32px, 5vw, 64px); display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-10); min-width: 0; }
-.dp-logo { display: flex; align-items: baseline; gap: 0.12em; font-size: clamp(30px, 3.4vw, 46px); font-weight: var(--fw-light); letter-spacing: -0.01em; line-height: 1; }
-.dp-caret { font-weight: var(--fw-regular); }
-.dp-prize { font-weight: var(--fw-light); font-size: 0.82em; margin-left: 0.2em; }
+.dp-logo { display: flex; align-items: baseline; font-size: clamp(34px, 3.8vw, 52px); font-weight: var(--fw-regular); letter-spacing: -0.02em; line-height: 1; }
+/* the caret is a heavier chevron that sits between the x-height and the ascenders, tucked close to the letters */
+.dp-caret { width: 0.56em; height: 0.32em; margin: 0 0.01em; vertical-align: baseline; align-self: baseline; position: relative; top: -0.26em; flex-shrink: 0; }
+.dp-prize { margin-left: 0.28em; }
 .dp-headline { display: flex; flex-direction: column; container-type: inline-size; letter-spacing: -0.025em; --s: min(25cqw, calc((100vh - 270px) / 3.8)); }
 /* sizes follow the poster width and the screen height, so the whole poster fits on one screen without scrolling */
 .dp-small { font-size: calc(var(--s) * 0.42); font-weight: var(--fw-light); line-height: 1; margin-bottom: 0.2em; }
