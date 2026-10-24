@@ -292,12 +292,10 @@ label { display: block; font-size: var(--fs-caption); font-weight: var(--fw-semi
 .pane { min-width: 0; }
 .split.even { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 @media (min-width: 861px) {
-  .workspace { height: calc(100vh - var(--header-h) - 2px); display: flex; flex-direction: column; overflow: hidden; }
-  .workspace .banner { flex-shrink: 0; }
-  .workspace .wrap { flex: 1; min-height: 0; width: 100%; display: flex; flex-direction: column; padding-top: var(--space-4); padding-bottom: var(--space-4); }
-  .workspace .pager { flex-shrink: 0; margin-bottom: var(--space-3); }
-  .workspace .split { flex: 1; min-height: 0; align-items: stretch; }
-  .workspace .pane { overflow-y: auto; overscroll-behavior: contain; padding-right: var(--space-2); scrollbar-gutter: stable; }
+  /* organisation pages scroll as one page: details run down the left, while the scoring column stays
+     pinned beside them (scrolling inside itself only when taller than the screen) */
+  .workspace .wrap { padding-top: var(--space-4); }
+  .workspace .split > .pane:last-child { position: sticky; top: calc(var(--header-h) + var(--space-4)); max-height: calc(100vh - var(--header-h) - var(--space-8)); overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; padding-right: var(--space-2); }
 }
 
 /* confirmation popup: appears in the middle of the screen, then fades away by itself */
@@ -384,11 +382,11 @@ table.compact td .pre { max-width: 90px; }
 }
 
 /* ---------- organisation details: one tidy block per heading ---------- */
-.od-nav { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; gap: 6px; margin: 0 calc(-1 * var(--space-5)) 0; padding: 10px var(--space-5); background: var(--surface-card); border-bottom: 1px solid var(--border-subtle); }
+.od-nav { position: sticky; top: var(--header-h); z-index: 2; display: flex; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; gap: 6px; margin: 0 calc(-1 * var(--space-5)) 0; padding: 10px var(--space-5); background: var(--surface-card); border-bottom: 1px solid var(--border-subtle); }
 .od-nav a { display: inline-flex; gap: 5px; align-items: baseline; padding: 3px 10px; font-size: var(--fs-caption); color: var(--text-secondary); text-decoration: none; border: 1px solid var(--border-subtle); white-space: nowrap; }
 .od-nav a b { color: var(--text-accent); font-weight: var(--fw-bold); }
 .od-nav a:hover { background: var(--surface-tint); border-color: var(--accent-600); color: var(--text-primary); }
-.od-section { padding: var(--space-5) 0; border-top: 1px solid var(--border-subtle); scroll-margin-top: 60px; }
+.od-section { padding: var(--space-5) 0; border-top: 1px solid var(--border-subtle); scroll-margin-top: 120px; }
 .od-nav + .od-section { border-top: none; }
 .od-note { font-weight: var(--fw-regular); color: var(--text-muted); }
 .od-p { margin: 0 0 var(--space-2); line-height: 1.65; max-width: 70ch; }
@@ -441,11 +439,6 @@ table.compact td .pre { max-width: 90px; }
    below the two panes. The panes keep their own scrolling; the page scrolls down to the verdict. */
 .verdict-wide { margin-top: var(--space-5); }
 .verdict-wide form { max-width: 760px; }
-@media (min-width: 861px) {
-  .workspace.has-footer { height: auto; min-height: calc(100vh - var(--header-h) - 2px); overflow: visible; }
-  .workspace.has-footer .wrap { flex: none; }
-  .workspace.has-footer .split { flex: none; height: calc(100vh - var(--header-h) - 215px); min-height: 420px; }
-}
 
 .pager-hint { margin-right: var(--space-2); }
 .tick-lg { width: 36px; height: 36px; display: grid; place-items: center; margin-bottom: var(--space-3); background: var(--status-good); color: #fff; font-size: 20px; font-weight: var(--fw-bold); }
@@ -513,3 +506,7 @@ table.summary th { padding: 6px 12px; }
 .queries { margin: 0; padding-left: 1.4em; display: grid; gap: var(--space-3); }
 .queries li p { margin: 2px 0 0; color: var(--text-secondary); line-height: 1.55; }
 .guide-card { padding-top: var(--space-4); padding-bottom: var(--space-4); }
+
+.guide-card .row { flex-wrap: nowrap; align-items: center; gap: var(--space-4); }
+.guide-card .hint { margin: 2px 0 0; }
+.guide-card h2 { font-size: var(--fs-h3, 18px); }
