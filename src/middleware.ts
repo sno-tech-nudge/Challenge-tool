@@ -2,11 +2,12 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { verifySession } from '@/lib/auth/token';
 import { SESSION_COOKIE } from '@/lib/constants';
 
-// Everything except /login requires a valid signed, unexpired session. /admin is ADMIN-only and
+// Everything except /login (and the tab icon) requires a valid signed, unexpired session. /admin is ADMIN-only and
 // /jury is JURY-only; pages re-check against the database as well.
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  if (pathname === '/login') return NextResponse.next();
+  // the sign-in page and the browser-tab icon are visible to signed-out visitors
+  if (pathname === '/login' || pathname === '/icon.svg') return NextResponse.next();
 
   const s = await verifySession(req.cookies.get(SESSION_COOKIE)?.value);
   if (!s) return NextResponse.redirect(new URL('/login', req.url));
