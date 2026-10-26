@@ -545,3 +545,6 @@ table.summary th { padding: 6px 12px; }
 
 /* the evaluation fact sheet button */
 .od-factsheet { display: flex; align-items: center; }
+
+/* letters that must stay in capitals inside lowercased buttons, such as M&E */
+.keep-case { text-transform: none; }

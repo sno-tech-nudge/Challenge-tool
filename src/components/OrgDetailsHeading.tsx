@@ -11,7 +11,7 @@ export function OrgDetailsHeading({ orgId, hasFactsheet }: { orgId: string; hasF
         <div className="od-factsheet">
           <a className="btn secondary sm factsheet-btn" href={`/api/factsheet/${orgId}`} target="_blank" rel="noopener noreferrer">
             <FileText size={14} strokeLinejoin="miter" strokeLinecap="square" aria-hidden="true" />
-            <span>click to view the evaluation fact sheet (by M&amp;E partner)</span>
+            <span>click to view the evaluation fact sheet (by <span className="keep-case">M&amp;E</span> partner)</span>
           </a>
         </div>
       )}
