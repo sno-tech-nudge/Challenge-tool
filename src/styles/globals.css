@@ -542,3 +542,11 @@ table.summary th { padding: 6px 12px; }
 .dialog.celebrating { text-align: center; }
 .dialog.celebrating .tick-lg { margin-left: auto; margin-right: auto; }
 .dialog.celebrating .dialog-actions { justify-content: center; }
+
+/* the evaluation fact sheet button with its small "i" note */
+.od-factsheet { display: flex; align-items: center; gap: var(--space-2); }
+.infotip { position: relative; display: inline-flex; flex-shrink: 0; }
+.infotip-btn { width: 24px; height: 24px; display: grid; place-items: center; padding: 0; background: transparent; color: var(--text-accent); border: 1px solid var(--border-strong, var(--border-subtle)); font: inherit; font-size: 13px; font-weight: var(--fw-bold); font-style: italic; line-height: 1; cursor: pointer; }
+.infotip-btn:hover, .infotip[data-open='true'] .infotip-btn { background: var(--surface-tint); border-color: var(--accent-600); }
+.infotip-pop { position: absolute; z-index: var(--z-overlay); top: calc(100% + 8px); right: 0; width: max-content; max-width: 260px; padding: var(--space-3) var(--space-4); background: var(--surface-card); color: var(--text-primary); border: 1px solid var(--border-subtle); border-top: 3px solid var(--accent-600); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25); font-size: var(--fs-small); font-weight: var(--fw-semibold); line-height: 1.45; text-align: left; visibility: hidden; opacity: 0; transform: translateY(-4px); transition: opacity 140ms var(--ease), transform 140ms var(--ease), visibility 0s linear 140ms; pointer-events: none; }
+.infotip[data-open='true'] .infotip-pop, .infotip:hover .infotip-pop, .infotip:focus-within .infotip-pop { visibility: visible; opacity: 1; transform: translateY(0); transition-delay: 0s; }
