@@ -14,7 +14,7 @@ export function OrgDetailsHeading({ orgId, hasFactsheet }: { orgId: string; hasF
             <FileText size={14} strokeLinejoin="miter" strokeLinecap="square" aria-hidden="true" />
             <span>click to view the evaluation fact sheet</span>
           </a>
-          <InfoTip label="about this evaluation" text="this evaluation has been provided by a third-party" />
+          <InfoTip label="about this evaluation" text="this evaluation factsheet has been provided to us by our third party M&E partner" />
         </div>
       )}
     </div>
