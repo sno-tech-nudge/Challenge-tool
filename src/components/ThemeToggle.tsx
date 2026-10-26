@@ -5,13 +5,11 @@ import { Moon, Sun } from 'lucide-react';
 import { applyTheme, readTheme, saveTheme, type Theme } from '@/lib/theme';
 
 export function ThemeToggle() {
-  const [theme, setTheme] = React.useState<Theme>('light');
+  const [theme, setTheme] = React.useState<Theme>('dark');
   React.useEffect(() => {
     const t = readTheme();
     setTheme(t);
     applyTheme(t);
-    // leaving the signed-in shell (logout) puts the page back on the light theme
-    return () => applyTheme('light');
   }, []);
 
   function toggle() {

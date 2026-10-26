@@ -26,6 +26,8 @@ Stack: Next.js 14 (App Router), TypeScript, Prisma, **Postgres**. Hosted on Verc
   - *team*: add a member (name, login id which is their email, password with a generate button), edit name or id, reset a password (leave the field empty to keep it), or remove them. A member who has submitted reviews cannot be removed, so scores are never lost.
   - *activity log*: who submitted, updated or cleared a review, changed a verdict, edited the Ecociate score, or changed a team member, in India time. Passwords are never written to the log.
 
+The tool opens in the **dark theme** for everyone, the sign-in page included. The sun and moon button in the header switches to light, and that choice is remembered in that browser.
+
 On screens 860px wide or narrower the details and the scoring column stack. On larger screens the page scrolls as one, with the scoring column pinned beside the details.
 
 ## How scoring works
