@@ -11,7 +11,7 @@ Stack: Next.js 14 (App Router), TypeScript, Prisma, **Postgres**. Hosted on Verc
 - **Organisations list**: every organisation (alphabetical, ignoring case) with your own status and score out of 40. A juror only ever sees their own scores.
 - **Organisation page**:
   - *organisation details*: a contents bar that sticks under the header, then organisation brief and "the solution" (with the website), geographical coverage, women foodpreneurs covered, markets (with a revenue table), partnerships, scalability plan and SWOT.
-  - A button, **click to view the evaluation fact sheet (by M&E partner)**, opens that organisation's PDF in a new tab.
+  - A button, **click to view the org fact sheet (by M&E partner)**, opens that organisation's PDF in a new tab.
   - *internal remarks*: questions the team could ask about the organisation's current model ("to probe").
   - A **scoring guide** card (opens the rubric, the scale and the questions behind each criterion) and the **start review** form: six criteria, each scored out of 10 in half points, with a live total out of 40.
   - A full-width **final verdict** section at the end: yes or no, plus a required comment. Submitting shows a summary to confirm, then a "THANK YOU" dialog. The juror chooses when to go back (nothing redirects automatically).
@@ -58,7 +58,7 @@ Organisation content lives in the database (`Org.details`, a JSON of `{ sectionK
   Rows are matched by `key`. Only the fields present in the file are written, so an import never wipes a verdict, a jury score or an Ecociate score entered in the app.
 - `scripts/xlsx-to-orgs.py` was a one-off converter for the first data sheet. The sheet layout has changed since, so treat it as a reference rather than a tool.
 
-### Evaluation fact sheets (PDF)
+### Org fact sheets (PDF)
 
 Each organisation can have a PDF fact sheet from the M&E partner.
 
