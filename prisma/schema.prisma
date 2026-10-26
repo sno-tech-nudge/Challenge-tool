@@ -27,7 +27,11 @@ model Org {
   id   String  @id @default(cuid())
   key  String  @unique // stable slug used by the data import
   name String
-  slot String? // interview slot, display text e.g. "10 Nov, 10:00-10:45"
+  slot String? // interview slot, display text e.g. "10 Nov, 10:00-10:45" (used only when slotStart is not set)
+  // the interview slot as real times. Jurors' lists follow slotStart; scoring opens at slotStart, and
+  // once slotEnd has passed a submitted review can no longer be changed. null = no restriction.
+  slotStart DateTime?
+  slotEnd   DateTime?
 
   sector   String?
   location String?

@@ -548,3 +548,19 @@ table.summary th { padding: 6px 12px; }
 
 /* letters that must stay in capitals inside lowercased buttons, such as M&E */
 .keep-case { text-transform: none; }
+
+/* the remark button beside a score on the admin score table, and its note */
+.score-cell { display: inline-flex; align-items: center; justify-content: flex-end; gap: var(--space-2); }
+.remark-btn { width: 20px; height: 20px; display: inline-grid; place-items: center; padding: 0; background: transparent; color: var(--text-accent); border: 1px solid var(--border-strong, var(--border-subtle)); font: inherit; font-size: 12px; font-weight: var(--fw-bold); font-style: italic; line-height: 1; cursor: pointer; }
+.remark-btn:hover, .remark-btn[aria-expanded='true'] { background: var(--surface-tint); border-color: var(--accent-600); }
+.remark-pop { position: fixed; z-index: var(--z-overlay); width: min(300px, calc(100vw - 16px)); padding: var(--space-3) var(--space-4); background: var(--surface-card); color: var(--text-primary); border: 1px solid var(--border-subtle); border-top: 3px solid var(--accent-600); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); font-size: var(--fs-small); line-height: 1.5; text-align: left; white-space: normal; pointer-events: none; }
+.remark-title { margin-bottom: var(--space-1); font-size: var(--fs-caption); font-weight: var(--fw-bold); letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-accent); }
+
+/* the slot note above the scoring form: when scoring opens, or that the slot has ended */
+.slot-note { margin: 0 0 var(--space-4); padding: var(--space-3) var(--space-4); border-left: 3px solid var(--accent-600); background: var(--surface-tint); color: var(--text-primary); font-size: var(--fs-small); font-weight: var(--fw-semibold); line-height: 1.5; }
+.slot-note.locked { border-left-color: var(--status-warn); }
+input:disabled, textarea:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* a titled group of points, such as one kind of proposed partnership */
+.od-group + .od-group { margin-top: var(--space-4); }
+.od-gh { margin: 0 0 var(--space-1); font-size: var(--fs-small); font-weight: var(--fw-bold); color: var(--text-secondary); }

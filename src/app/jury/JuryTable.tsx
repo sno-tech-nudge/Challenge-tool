@@ -7,18 +7,23 @@ import { Search, ChevronRight } from 'lucide-react';
 import { JURY_MAX } from '@/lib/constants';
 import { toJuryScale } from '@/lib/scoring';
 import { Pill, ScoreBar } from '@/components/ui';
+import { slotPhase } from '@/lib/slots';
+import { useNow } from '@/lib/use-now';
 
 interface Row {
   id: string;
   name: string;
   slot: string | null;
+  slotStart: string | null;
+  slotEnd: string | null;
   sector: string | null;
   myTotal: number | null;
 }
 
 type Filter = 'all' | 'todo' | 'done';
 
-export function JuryTable({ orgs, done }: { orgs: Row[]; done: number }) {
+export function JuryTable({ orgs, done, serverNow }: { orgs: Row[]; done: number; serverNow: string }) {
+  const now = useNow(serverNow);
   const router = useRouter();
   const [q, setQ] = React.useState('');
   const [filter, setFilter] = React.useState<Filter>('all');
@@ -74,7 +79,17 @@ export function JuryTable({ orgs, done }: { orgs: Row[]; done: number }) {
                 <td className="muted">{orgs.indexOf(o) + 1}</td>
                 <td><Link href={`/jury/${o.id}`} className="org-link" onClick={(e) => { e.stopPropagation(); setOpening(o.id); }}>{o.name}</Link></td>
                 <td>{o.slot ?? '-'}</td>
-                <td>{opening === o.id ? <Pill>opening…</Pill> : o.myTotal === null ? <Pill tone="warn">not scored</Pill> : <Pill tone="good">scored</Pill>}</td>
+                <td>
+                  {opening === o.id ? (
+                    <Pill>opening…</Pill>
+                  ) : o.myTotal !== null ? (
+                    <Pill tone="good">scored</Pill>
+                  ) : slotPhase(o.slotStart ? new Date(o.slotStart) : null, o.slotEnd ? new Date(o.slotEnd) : null, now) === 'before' ? (
+                    <Pill>not open yet</Pill>
+                  ) : (
+                    <Pill tone="warn">not scored</Pill>
+                  )}
+                </td>
                 <td className="num">
                   {o.myTotal === null ? <span className="muted">-</span> : (
                     <div style={{ display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'flex-end' }}>

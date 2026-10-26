@@ -9,15 +9,49 @@ import { submitReviewAction, clearReviewAction, type FormState } from '@/lib/act
 import { PARAMETERS, SCORE_MIN, SCORE_MAX, SCORE_STEP, weightedPoints, computeTotal, type ScoreEntry } from '@/lib/rubric';
 import { JURY_MAX } from '@/lib/constants';
 import { toJuryScale } from '@/lib/scoring';
+import { formatMoment, reviewAccess, slotPhase } from '@/lib/slots';
+import { useNow } from '@/lib/use-now';
 import { useToast } from '@/components/Toast';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { InfoDialog } from '@/components/InfoDialog';
 
 const FORM_ID = 'review-form';
 
-export function ReviewForm({ orgId, existing, existingVerdict, existingRemarks }: { orgId: string; existing: ScoreEntry[]; existingVerdict: string | null; existingRemarks: string }) {
+export function ReviewForm({
+  orgId,
+  existing,
+  existingVerdict,
+  existingRemarks,
+  slotStart,
+  slotEnd,
+  serverNow,
+}: {
+  orgId: string;
+  existing: ScoreEntry[];
+  existingVerdict: string | null;
+  existingRemarks: string;
+  slotStart: string | null;
+  slotEnd: string | null;
+  serverNow: string;
+}) {
   const toast = useToast();
   const router = useRouter();
+  // the interview slot decides whether scoring is open: closed until it starts, and no changes once it has ended
+  const now = useNow(serverNow);
+  const start = slotStart ? new Date(slotStart) : null;
+  const end = slotEnd ? new Date(slotEnd) : null;
+  const phase = slotPhase(start, end, now);
+  const access = reviewAccess(phase, existing.length > 0);
+  const locked = !access.canSubmit;
+  const slotNote = (() => {
+    if (!start) return null;
+    if (access.why === 'before') return `scoring opens on ${formatMoment(start)}. until then you can read everything about the organisation.`;
+    if (access.why === 'ended') return 'this slot has ended. the scores you submitted are shown below and can no longer be changed.';
+    if (!end) return null;
+    return existing.length
+      ? `you can change your scores until ${formatMoment(end)}.`
+      : `this slot ends on ${formatMoment(end)}. you can still submit your scores afterwards, but once the slot has ended they cannot be changed.`;
+  })();
   const [state, action] = useFormState<FormState, FormData>(submitReviewAction, {});
   const byKey = new Map(existing.map((e) => [e.key, e]));
   const initialScores = Object.fromEntries(PARAMETERS.map((p) => [p.key, byKey.has(p.key) ? String(byKey.get(p.key)!.score) : '']));
@@ -49,7 +83,7 @@ export function ReviewForm({ orgId, existing, existingVerdict, existingRemarks }
     return !Number.isFinite(n) || n < SCORE_MIN || n > SCORE_MAX || Math.round(n / SCORE_STEP) * SCORE_STEP !== n;
   };
   const anyInvalid = PARAMETERS.some((p) => invalid(p.key));
-  const canSubmit = filled === PARAMETERS.length && !anyInvalid && verdict !== '' && internal.trim() !== '';
+  const canSubmit = !locked && filled === PARAMETERS.length && !anyInvalid && verdict !== '' && internal.trim() !== '';
 
   // each submit produces a new state object: acknowledge a save once, or show the error
   // saving re-renders the page, which can remount this form and drop its state before the thank-you
@@ -91,6 +125,10 @@ export function ReviewForm({ orgId, existing, existingVerdict, existingRemarks }
   }, [dirty]);
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    if (locked) {
+      e.preventDefault();
+      return;
+    }
     if (confirmed.current) {
       confirmed.current = false;
       return;
@@ -127,6 +165,7 @@ export function ReviewForm({ orgId, existing, existingVerdict, existingRemarks }
     <>
       <form id={FORM_ID} ref={formRef} action={action} onSubmit={onSubmit} onChange={() => setDirty(true)}>
         <input type="hidden" name="orgId" value={orgId} />
+        {slotNote && <p className={`slot-note${locked ? ' locked' : ''}`} role="status">{slotNote}</p>}
         {PARAMETERS.map((p, i) => {
           const n = Number(scores[p.key]) || 0;
           const pct = Math.min(100, (n / SCORE_MAX) * 100);
@@ -156,6 +195,7 @@ export function ReviewForm({ orgId, existing, existingVerdict, existingRemarks }
                     max={SCORE_MAX}
                     step={SCORE_STEP}
                     required
+                    disabled={locked}
                     className={invalid(p.key) ? 'field-error' : undefined}
                     aria-invalid={invalid(p.key)}
                     value={scores[p.key]}
@@ -165,7 +205,7 @@ export function ReviewForm({ orgId, existing, existingVerdict, existingRemarks }
                 </div>
                 <div style={{ flex: '1 1 200px' }}>
                   <label htmlFor={`remarks_${p.key}`}>remarks</label>
-                  <textarea id={`remarks_${p.key}`} name={`remarks_${p.key}`} value={remarks[p.key]} onChange={(e) => setRemarks({ ...remarks, [p.key]: e.target.value })} style={{ minHeight: 38 }} />
+                  <textarea id={`remarks_${p.key}`} name={`remarks_${p.key}`} disabled={locked} value={remarks[p.key]} onChange={(e) => setRemarks({ ...remarks, [p.key]: e.target.value })} style={{ minHeight: 38 }} />
                 </div>
               </div>
               {invalid(p.key) && <p className="err">enter a score from {SCORE_MIN} to {SCORE_MAX} (whole or half points)</p>}
@@ -195,14 +235,14 @@ export function ReviewForm({ orgId, existing, existingVerdict, existingRemarks }
               <div className="verdict-choice" role="radiogroup" aria-label="your final verdict">
                 {([['Y', 'yes'], ['N', 'no']] as const).map(([v, label]) => (
                   <label key={v} className={verdict === v ? `on ${v === 'Y' ? 'yes' : 'no'}` : ''}>
-                    <input type="radio" name="verdict" value={v} form={FORM_ID} checked={verdict === v} onChange={() => setVerdict(v)} /> {label}
+                    <input type="radio" name="verdict" value={v} form={FORM_ID} disabled={locked} checked={verdict === v} onChange={() => setVerdict(v)} /> {label}
                   </label>
                 ))}
               </div>
             </div>
             <div>
               <label htmlFor="internalRemarks">comment section (required)</label>
-              <textarea id="internalRemarks" name="internalRemarks" form={FORM_ID} value={internal} onChange={(e) => setInternal(e.target.value)} required placeholder="the reasoning behind your scores and verdict" />
+              <textarea id="internalRemarks" name="internalRemarks" form={FORM_ID} disabled={locked} value={internal} onChange={(e) => setInternal(e.target.value)} required placeholder="the reasoning behind your scores and verdict" />
               <p className="hint" style={{ marginTop: 4 }}>shown to the admin team with your review.</p>
             </div>
           </div>
@@ -210,9 +250,9 @@ export function ReviewForm({ orgId, existing, existingVerdict, existingRemarks }
           <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-4)', flexWrap: 'wrap', alignItems: 'center' }}>
             <button type="submit" form={FORM_ID} className="btn" disabled={submitting || !canSubmit}>{submitting ? 'saving…' : existing.length ? 'update review' : 'submit review'}</button>
             {existing.length > 0 && (
-              <button type="button" className="btn danger" onClick={() => setConfirmClear(true)}>clear my review</button>
+              <button type="button" className="btn danger" disabled={locked} onClick={() => setConfirmClear(true)}>clear my review</button>
             )}
-            {!canSubmit && <span className="hint">{filled < PARAMETERS.length ? 'score all six criteria' : anyInvalid ? 'fix the highlighted score' : verdict === '' ? 'choose yes or no' : 'add a comment'} to submit.</span>}
+            {!canSubmit && !locked && <span className="hint">{filled < PARAMETERS.length ? 'score all six criteria' : anyInvalid ? 'fix the highlighted score' : verdict === '' ? 'choose yes or no' : 'add a comment'} to submit.</span>}
           </div>
         </section>,
         slot,

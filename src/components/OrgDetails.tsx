@@ -113,6 +113,13 @@ function Blocks({ blocks, website }: { blocks: Block[]; website: string | null }
                 )}
               </div>
             );
+          case 'group':
+            return (
+              <div key={i} className="od-group">
+                {b.heading && <h5 className="od-gh">{b.heading}</h5>}
+                <ul className="od-bullets">{b.items.map((t) => <li key={t}>{t}</li>)}</ul>
+              </div>
+            );
           case 'bullets':
             return <ul key={i} className="od-bullets">{b.items.map((t) => <li key={t}>{t}</li>)}</ul>;
           case 'rows':

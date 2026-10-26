@@ -177,7 +177,11 @@ export function TeamManager({ members, currentUserId }: { members: Member[]; cur
       <ConfirmDialog
         open={removing !== null}
         title={`remove ${removing?.name ?? ''}?`}
-        body={`${removing?.email ?? ''} will no longer be able to sign in. Members who have already submitted reviews cannot be removed.`}
+        body={
+          removing && removing.reviews > 0
+            ? `${removing.email} will no longer be able to sign in, and their ${removing.reviews} submitted review${removing.reviews === 1 ? '' : 's'} will be permanently deleted. Each affected organisation's jury score and final score will change. This cannot be undone.`
+            : `${removing?.email ?? ''} will no longer be able to sign in.`
+        }
         confirmLabel="remove member"
         danger
         busy={busy}

@@ -6,6 +6,7 @@ import { requireRole } from './auth/session';
 import { PARAMETERS, SCORE_MIN, SCORE_MAX, SCORE_STEP, computeTotal, type ScoreEntry } from './rubric';
 import { ECOCIATE_MAX, JURY_MAX } from './constants';
 import { toJuryScale } from './scoring';
+import { formatMoment, reviewAccess, slotPhase } from './slots';
 import { logActivity } from './activity';
 
 export interface FormState {
@@ -28,8 +29,15 @@ function refreshOrg(orgId: string) {
 export async function submitReviewAction(_prev: FormState, formData: FormData): Promise<FormState> {
   const user = await requireRole('JURY');
   const orgId = String(formData.get('orgId') ?? '');
-  const org = await prisma.org.findUnique({ where: { id: orgId }, select: { id: true, name: true } });
+  const org = await prisma.org.findUnique({ where: { id: orgId }, select: { id: true, name: true, slotStart: true, slotEnd: true } });
   if (!org) return { error: 'organisation not found' };
+
+  // the slot decides whether scoring is open: not before it starts, and no changes after it ends
+  const hasReview = (await prisma.juryScore.count({ where: { orgId, jurorId: user.id } })) > 0;
+  const access = reviewAccess(slotPhase(org.slotStart, org.slotEnd, new Date()), hasReview);
+  if (!access.canSubmit) {
+    return { error: access.why === 'before' && org.slotStart ? `scoring opens on ${formatMoment(org.slotStart)}` : 'this slot has ended, so your submitted scores can no longer be changed' };
+  }
 
   const entries: ScoreEntry[] = [];
   for (const p of PARAMETERS) {
@@ -70,8 +78,11 @@ export async function clearReviewAction(orgId: string): Promise<FormState> {
   const user = await requireRole('JURY');
   const existing = await prisma.juryScore.findUnique({
     where: { orgId_jurorId: { orgId, jurorId: user.id } },
-    select: { total: true, org: { select: { id: true, name: true } } },
+    select: { total: true, org: { select: { id: true, name: true, slotStart: true, slotEnd: true } } },
   });
+  if (existing && !reviewAccess(slotPhase(existing.org.slotStart, existing.org.slotEnd, new Date()), true).canSubmit) {
+    return { error: 'this slot has ended, so your submitted scores can no longer be changed' };
+  }
   await prisma.juryScore.deleteMany({ where: { orgId, jurorId: user.id } });
   if (existing) await logActivity({ actor: user, action: 'REVIEW_CLEARED', org: existing.org, detail: `was ${toJuryScale(existing.total)} / ${JURY_MAX}` });
   refreshOrg(orgId);

@@ -1,5 +1,6 @@
 import { prisma } from './db';
 import { snapshot } from './scoring';
+import { compareBySlot, slotLabel } from './slots';
 
 /** Alphabetical, ignoring case, so a name like "bettrlabs" sits among the others. The database sorts
  *  upper case before lower case, so lists are ordered here instead. */
@@ -13,11 +14,20 @@ export async function listOrgsForJuror(jurorId: string) {
       id: true,
       name: true,
       slot: true,
+      slotStart: true,
+      slotEnd: true,
       sector: true,
       scores: { where: { jurorId }, select: { total: true } },
     },
-  })).sort(byName);
-  return orgs.map(({ scores, ...o }) => ({ ...o, myTotal: scores[0]?.total ?? null }));
+  })).sort(compareBySlot);
+  // earliest slot first; the dates travel to the browser as text
+  return orgs.map(({ scores, slotStart, slotEnd, slot, ...o }) => ({
+    ...o,
+    slot: slotLabel({ slot, slotStart, slotEnd }),
+    slotStart: slotStart?.toISOString() ?? null,
+    slotEnd: slotEnd?.toISOString() ?? null,
+    myTotal: scores[0]?.total ?? null,
+  }));
 }
 
 export async function getOrgForJuror(orgId: string, jurorId: string) {
@@ -28,6 +38,8 @@ export async function getOrgForJuror(orgId: string, jurorId: string) {
       id: true,
       name: true,
       slot: true,
+      slotStart: true,
+      slotEnd: true,
       sector: true,
       location: true,
       website: true,
@@ -48,7 +60,7 @@ export async function listSnapshot() {
   return orgs.map((o) => ({
     id: o.id,
     name: o.name,
-    slot: o.slot,
+    slot: slotLabel(o),
     verdict: o.verdict,
     ...snapshot(o.ecociateScore, o.scores.map((s) => s.total)),
   }));
@@ -65,9 +77,10 @@ export async function listJurors() {
   return prisma.user.findMany({ where: { role: 'JURY' }, orderBy: { name: 'asc' }, select: { id: true, name: true } });
 }
 
-/** Previous / next organisation in the same alphabetical order the lists use. */
-export async function orgNeighbours(orgId: string) {
-  const ids = (await prisma.org.findMany({ select: { id: true, name: true } })).sort(byName).map((o) => o.id);
+/** Previous / next organisation in the order the list uses: alphabetical for admins, by slot for jurors. */
+export async function orgNeighbours(orgId: string, order: 'name' | 'slot' = 'name') {
+  const all = await prisma.org.findMany({ select: { id: true, name: true, slotStart: true } });
+  const ids = all.sort(order === 'slot' ? compareBySlot : byName).map((o) => o.id);
   const i = ids.indexOf(orgId);
   return {
     prevId: i > 0 ? ids[i - 1] : null,

@@ -31,6 +31,7 @@ export type Block =
   | { kind: 'items'; rows: { title: string; lines: [string, string][] }[] }
   | { kind: 'table'; head: string[]; rows: string[][] }
   | { kind: 'bullets'; items: string[] }
+  | { kind: 'group'; heading: string; items: string[] }
   | { kind: 'rows'; rows: { heading: string; text: string }[] }
   | { kind: 'swot'; s: string | string[]; w: string | string[]; o: string | string[]; t: string | string[] };
 

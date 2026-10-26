@@ -3,6 +3,7 @@ import { requireRole } from '@/lib/auth/session';
 import { getOrgForAdmin, listJurors, orgNeighbours } from '@/lib/queries';
 import { PARAMETERS, parseEntries } from '@/lib/rubric';
 import { snapshot, toJuryScale } from '@/lib/scoring';
+import { slotLabel } from '@/lib/slots';
 import { parseDetails } from '@/lib/orgSections';
 import { ECOCIATE_MAX, JURY_MAX } from '@/lib/constants';
 import { Shell } from '@/components/Shell';
@@ -10,6 +11,7 @@ import { PageBanner, Pill, ScoreBar, scoreTone } from '@/components/ui';
 import { OrgPager } from '@/components/OrgPager';
 import { OrgDetails } from '@/components/OrgDetails';
 import { InternalQueries } from '@/components/InternalQueries';
+import { RemarkTip } from '@/components/RemarkTip';
 import { OrgDetailsHeading } from '@/components/OrgDetailsHeading';
 import { VerdictForm, EcociateForm } from './AdminForms';
 
@@ -31,7 +33,7 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
     <Shell user={user}>
       <div className="workspace has-footer">
       <PageBanner compact
-        eyebrow={org.slot ? `the aahaar bazaar challenge · score card · slot ${org.slot}` : 'the aahaar bazaar challenge · score card'}
+        eyebrow={slotLabel(org) ? `the aahaar bazaar challenge · score card · slot ${slotLabel(org)}` : 'the aahaar bazaar challenge · score card'}
         title={org.name}
         actions={org.verdict ? <Pill tone={org.verdict === 'Y' ? 'good' : 'bad'}>verdict: {org.verdict === 'Y' ? 'yes' : 'no'}</Pill> : <Pill tone="warn">verdict pending</Pill>}
       />
@@ -114,8 +116,14 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
                         const e = byJuror.get(j.id)?.entries.get(p.key);
                         return (
                           <td key={j.id} className="num">
-                            {e ? e.score : <span className="muted">-</span>}
-                            {e?.remarks && <div className="muted pre small" style={{ textAlign: 'left', marginTop: 2 }}>{e.remarks}</div>}
+                            {e ? (
+                              <span className="score-cell">
+                                {e.score}
+                                {e.remarks && <RemarkTip text={e.remarks} juror={j.name} />}
+                              </span>
+                            ) : (
+                              <span className="muted">-</span>
+                            )}
                           </td>
                         );
                       })}

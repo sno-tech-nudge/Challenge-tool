@@ -8,22 +8,22 @@ Stack: Next.js 14 (App Router), TypeScript, Prisma, **Postgres**. Hosted on Verc
 
 **Jury** (`/jury`)
 
-- **Organisations list**: every organisation (alphabetical, ignoring case) with your own status and score out of 40. A juror only ever sees their own scores.
+- **Organisations list**: every organisation in **slot order** (earliest slot first; organisations without a slot come last, alphabetically), with its slot, your own status and your score out of 40. A juror only ever sees their own scores.
 - **Organisation page**:
   - *organisation details*: a contents bar that sticks under the header, then organisation brief and "the solution" (with the website), geographical coverage, women foodpreneurs covered, markets (with a revenue table), partnerships, scalability plan and SWOT.
   - A button, **click to view the org fact sheet (by M&E partner)**, opens that organisation's PDF in a new tab.
   - *internal remarks*: questions the team could ask about the organisation's current model ("to probe").
   - A **scoring guide** card (opens the rubric, the scale and the questions behind each criterion) and the **start review** form: six criteria, each scored out of 10 in half points, with a live total out of 40.
   - A full-width **final verdict** section at the end: yes or no, plus a required comment. Submitting shows a summary to confirm, then a "THANK YOU" dialog. The juror chooses when to go back (nothing redirects automatically).
-- The previous and next buttons stay locked until the juror has submitted their scores for the organisation.
+- The previous and next buttons follow the same slot order. They stay locked until the juror has submitted their scores for the organisation, except while the organisation's slot has not opened yet (scoring is blocked then, so there is nothing to submit).
 - Scrolling the mouse wheel over a score box never changes the score.
 
 **Admin** (`/admin`)
 
 - **Snapshot**: every organisation with the M&E score (out of 60), the jury score (out of 40), the final score (out of 100) and the admin verdict.
-- **Score card** per organisation: the same details and fact sheet button as jurors, internal remarks plus each juror's comment ("jury comments"), a scores card, the Ecociate score and reasoning form, a table of every juror's scores per criterion (with each juror's yes or no), and the admin's own **final verdict** with rationale, which feeds the snapshot.
+- **Score card** per organisation: the same details and fact sheet button as jurors, internal remarks plus each juror's comment ("jury comments"), a scores card, the Ecociate score and reasoning form, a table of every juror's scores per criterion (a small **i** beside a score opens that juror's remark for the criterion, in a note headed "remark"; the table also shows each juror's yes or no), and the admin's own **final verdict** with rationale, which feeds the snapshot.
 - **Settings** (`/admin/settings`):
-  - *team*: add a member (name, login id which is their email, password with a generate button), edit name or id, reset a password (leave the field empty to keep it), or remove them. A member who has submitted reviews cannot be removed, so scores are never lost.
+  - *team*: add a member (name, login id which is their email, password with a generate button), edit name or id, reset a password (leave the field empty to keep it), or remove them. **Removing a member also deletes every review they submitted**; the confirmation says how many, and the affected organisations' jury scores and final scores change. Removal cannot be undone, and you cannot remove yourself or the last admin.
   - *activity log*: who submitted, updated or cleared a review, changed a verdict, edited the Ecociate score, or changed a team member, in India time. Passwords are never written to the log.
 
 The tool opens in the **dark theme** for everyone, the sign-in page included. The sun and moon button in the header switches to light, and that choice is remembered in that browser.
@@ -36,6 +36,24 @@ On screens 860px wide or narrower the details and the scoring column stack. On l
 - A criterion's points are `score / 10 x weight`. The total is stored out of 100 and **shown out of 40** (`x 0.4`), so the weights read as 3, 3, 10, 6, 10 and 8 points.
 - **Final score = M&E (Ecociate) score out of 60, entered as is, + the average of the jurors' totals out of 40.** It shows `-` until both parts exist.
 - Score colours: 71% or more green, 50% to under 71% yellow, below 50% red.
+
+## Interview slots
+
+Each organisation can have an interview slot. While no slot is set, scoring is open as before. Once a slot is set:
+
+| when | what a juror can do |
+|---|---|
+| before the slot starts | read everything about the organisation, but **scoring is blocked** (the form is locked and the server refuses submissions) |
+| from the start | score and submit; a submitted review can still be changed |
+| after the slot ends | scoring **stays open** for a first submission, but a submitted review can **no longer be changed or cleared** |
+
+Times are shown in India time (IST). The page notices the slot opening or ending without a reload. To set slots, add them to `data/orgs.json` as ISO times with the India offset, then import:
+
+```json
+{ "key": "win-win-bites", "slotStart": "2026-10-27T10:00:00+05:30", "slotEnd": "2026-10-27T10:45:00+05:30" }
+```
+
+`npm run db:import-orgs` writes them. Use `null` to clear a slot. The older free-text `slot` field is shown only when there are no `slotStart` and `slotEnd` times. The rules live in `src/lib/slots.ts` and are enforced in `src/lib/actions.ts`.
 
 ## Sections that are switched off for now
 
@@ -106,6 +124,8 @@ npm install
 npm run setup            # applies migrations and seeds a fresh database
 npm run dev              # http://localhost:3000
 ```
+
+The browser tab icon (`src/app/icon.svg`) is the same "a" mark as the header. It is served to signed-out visitors too, so the sign-in page shows it.
 
 Seed accounts (fresh databases only): admin `gaurangwadhawan3@gmail.com`; juror 1 `gaurang.wadhawan@thenudge.org`; demo jurors `juror2@example.test`, `juror3@example.test`, `juror4@example.test`. Passwords come from `.env` at seed time (`SEED_PASSWORD_ADMIN`, `SEED_PASSWORD_JUROR1`, and `SEED_PASSWORD` for the rest) and are stored only as scrypt hashes. `.env` is git-ignored.
 

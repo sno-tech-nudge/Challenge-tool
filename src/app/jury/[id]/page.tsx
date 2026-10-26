@@ -12,6 +12,7 @@ import { OrgDetailsHeading } from '@/components/OrgDetailsHeading';
 import { SidePanel } from '@/components/SidePanel';
 import { RubricGuide } from '@/components/RubricGuide';
 import { toJuryScale } from '@/lib/scoring';
+import { slotLabel, slotPhase } from '@/lib/slots';
 import { JURY_MAX } from '@/lib/constants';
 import { BookOpen } from 'lucide-react';
 import { ReviewForm } from './ReviewForm';
@@ -20,15 +21,18 @@ export const dynamic = 'force-dynamic';
 
 export default async function JuryOrgPage({ params }: { params: { id: string } }) {
   const user = await requireRole('JURY');
-  const [org, nav] = await Promise.all([getOrgForJuror(params.id, user.id), orgNeighbours(params.id)]);
+  const [org, nav] = await Promise.all([getOrgForJuror(params.id, user.id), orgNeighbours(params.id, 'slot')]);
   if (!org) notFound();
   const mine = org.scores[0];
+  const now = new Date();
+  const phase = slotPhase(org.slotStart, org.slotEnd, now);
+  const slot = slotLabel(org);
 
   return (
     <Shell user={user}>
       <div className="workspace has-footer">
       <PageBanner compact
-        eyebrow={org.slot ? `the aahaar bazaar challenge · jury review · slot ${org.slot}` : 'the aahaar bazaar challenge · jury review'}
+        eyebrow={slot ? `the aahaar bazaar challenge · jury review · slot ${slot}` : 'the aahaar bazaar challenge · jury review'}
         title={org.name}
         actions={mine ? <Pill tone="good">you scored {toJuryScale(mine.total)} / {JURY_MAX}</Pill> : <Pill tone="warn">not scored yet</Pill>}
       />
@@ -38,7 +42,7 @@ export default async function JuryOrgPage({ params }: { params: { id: string } }
           baseLabel="organisations"
           name={org.name}
           {...nav}
-          lockedReason={mine ? undefined : 'submit your scores to move to another organisation'}
+          lockedReason={mine || phase === 'before' ? undefined : 'submit your scores to move to another organisation'}
         />
 
         <div className="split">
@@ -70,8 +74,22 @@ export default async function JuryOrgPage({ params }: { params: { id: string } }
           </section>
           <section className="card accent" id="review">
             <h2>start review</h2>
-            <p className="hint" style={{ marginBottom: 'var(--space-4)' }}>score all 6 criteria. you can come back and edit your scores at any time. please refer to the scoring guide above to go through the scoring rubric.</p>
-            <ReviewForm orgId={org.id} existing={mine ? parseEntries(mine.entries) : []} existingVerdict={mine?.verdict ?? null} existingRemarks={mine?.internalRemarks ?? ''} />
+            <p className="hint" style={{ marginBottom: 'var(--space-4)' }}>
+              score all 6 criteria.{' '}
+              {org.slotStart
+                ? 'scoring opens when the slot starts and stays open afterwards, but once the slot has ended the scores you submitted can no longer be changed.'
+                : 'you can come back and edit your scores at any time.'}{' '}
+              please refer to the scoring guide above to go through the scoring rubric.
+            </p>
+            <ReviewForm
+              orgId={org.id}
+              existing={mine ? parseEntries(mine.entries) : []}
+              existingVerdict={mine?.verdict ?? null}
+              existingRemarks={mine?.internalRemarks ?? ''}
+              slotStart={org.slotStart?.toISOString() ?? null}
+              slotEnd={org.slotEnd?.toISOString() ?? null}
+              serverNow={now.toISOString()}
+            />
           </section>
           </div>
           </div>

@@ -86,8 +86,8 @@ export async function updateMemberAction(_prev: FormState, formData: FormData): 
   return { ok: true };
 }
 
-/** Remove a member. Blocked for yourself, for the last admin, and for anyone who already has
- *  submitted scores (removing them would erase that history). */
+/** Remove a member. Blocked for yourself and for the last admin. Anything the member scored is
+ *  deleted with them, so the organisations' jury averages and final scores drop their scores too. */
 export async function deleteMemberAction(userId: string): Promise<FormState> {
   const admin = await requireRole('ADMIN');
   if (userId === admin.id) return { error: 'you cannot remove your own account' };
@@ -95,12 +95,15 @@ export async function deleteMemberAction(userId: string): Promise<FormState> {
   const target = await prisma.user.findUnique({ where: { id: userId }, select: { id: true, name: true, email: true, role: true, _count: { select: { scores: true } } } });
   if (!target) return { error: 'that member no longer exists' };
   if (target.role === 'ADMIN' && (await prisma.user.count({ where: { role: 'ADMIN' } })) <= 1) return { error: 'there must be at least one admin' };
-  if (target._count.scores > 0) {
-    return { error: `${target.name} has submitted ${target._count.scores} review${target._count.scores === 1 ? '' : 's'}, so they cannot be removed. Their scores would be lost.` };
-  }
 
-  await prisma.user.delete({ where: { id: userId } });
-  await logActivity({ actor: admin, action: 'MEMBER_REMOVED', detail: `${target.name} (${target.email})` });
+  const reviews = target._count.scores;
+  await prisma.$transaction([prisma.juryScore.deleteMany({ where: { jurorId: userId } }), prisma.user.delete({ where: { id: userId } })]);
+  await logActivity({
+    actor: admin,
+    action: 'MEMBER_REMOVED',
+    detail: `${target.name} (${target.email})${reviews ? `, ${reviews} review${reviews === 1 ? '' : 's'} deleted with them` : ''}`,
+  });
+  revalidatePath('/admin');
   refresh();
   return { ok: true };
 }

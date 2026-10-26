@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Org" ADD COLUMN "slotStart" TIMESTAMP(3),
+ADD COLUMN "slotEnd" TIMESTAMP(3);
