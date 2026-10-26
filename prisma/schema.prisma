@@ -24,8 +24,8 @@ model User {
 }
 
 model Org {
-  id   String @id @default(cuid())
-  key  String @unique // stable slug used by the data import
+  id   String  @id @default(cuid())
+  key  String  @unique // stable slug used by the data import
   name String
   slot String? // interview slot, display text e.g. "10 Nov, 10:00-10:45"
 
@@ -47,28 +47,31 @@ model Org {
   ecociateScore   Float?
   ecociateRemarks String?
 
+  // the organisation's factsheet (PDF), kept in its own table so it is never loaded with the org
+  factsheet OrgFactsheet?
+
   // admin final call: Y | N | null (undecided)
   verdict        String?
   verdictComment String?
   verdictAt      DateTime?
 
-  createdAt DateTime @default(now())
+  createdAt DateTime    @default(now())
   scores    JuryScore[]
 }
 
 model JuryScore {
-  id        String   @id @default(cuid())
-  orgId     String
-  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  jurorId   String
-  juror     User     @relation(fields: [jurorId], references: [id])
+  id              String   @id @default(cuid())
+  orgId           String
+  org             Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  jurorId         String
+  juror           User     @relation(fields: [jurorId], references: [id])
   // JSON array of { key, score, remarks } — keys come from src/lib/rubric.ts
-  entries   String
-  total     Float
+  entries         String
+  total           Float
   // the juror's own yes / no call ('Y' or 'N') and their internal remarks; null on older reviews
   verdict         String?
   internalRemarks String?
-  updatedAt DateTime @updatedAt
+  updatedAt       DateTime @updatedAt
 
   @@unique([orgId, jurorId])
 }
@@ -86,4 +89,13 @@ model ActivityLog {
   detail    String?
 
   @@index([at])
+}
+
+// One PDF per organisation, stored in the database so it is only served to signed-in people
+// (see src/app/api/factsheet/[id]/route.ts). Loaded by `npm run db:import-factsheets`.
+model OrgFactsheet {
+  orgId     String   @id
+  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  pdf       Bytes
+  updatedAt DateTime @updatedAt
 }

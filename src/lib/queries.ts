@@ -35,6 +35,7 @@ export async function getOrgForJuror(orgId: string, jurorId: string) {
       about: true,
       details: true,
       internalQueries: true,
+      factsheet: { select: { orgId: true } },
       scores: { where: { jurorId }, select: { entries: true, total: true, verdict: true, internalRemarks: true } },
     },
   });
@@ -56,7 +57,7 @@ export async function listSnapshot() {
 export async function getOrgForAdmin(orgId: string) {
   return prisma.org.findUnique({
     where: { id: orgId },
-    include: { scores: { include: { juror: { select: { id: true, name: true } } }, orderBy: { juror: { name: 'asc' } } } },
+    include: { factsheet: { select: { orgId: true } }, scores: { include: { juror: { select: { id: true, name: true } } }, orderBy: { juror: { name: 'asc' } } } },
   });
 }
 

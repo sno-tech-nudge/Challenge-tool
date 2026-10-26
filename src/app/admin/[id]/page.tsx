@@ -10,6 +10,7 @@ import { PageBanner, Pill, ScoreBar, scoreTone } from '@/components/ui';
 import { OrgPager } from '@/components/OrgPager';
 import { OrgDetails } from '@/components/OrgDetails';
 import { InternalQueries } from '@/components/InternalQueries';
+import { OrgDetailsHeading } from '@/components/OrgDetailsHeading';
 import { VerdictForm, EcociateForm } from './AdminForms';
 
 export const dynamic = 'force-dynamic';
@@ -40,7 +41,7 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
         <div className="split even">
           <div className="pane stack">
             <section className="card accent" id="details">
-              <h2>organisation details</h2>
+              <OrgDetailsHeading orgId={org.id} hasFactsheet={Boolean(org.factsheet)} />
               <OrgDetails website={org.website} idPrefix="a" details={parseDetails(org.details)} />
             </section>
             <section className="card" id="internal">

@@ -8,6 +8,7 @@ import { PageBanner, Pill } from '@/components/ui';
 import { OrgPager } from '@/components/OrgPager';
 import { OrgDetails } from '@/components/OrgDetails';
 import { InternalQueries } from '@/components/InternalQueries';
+import { OrgDetailsHeading } from '@/components/OrgDetailsHeading';
 import { SidePanel } from '@/components/SidePanel';
 import { RubricGuide } from '@/components/RubricGuide';
 import { toJuryScale } from '@/lib/scoring';
@@ -43,7 +44,7 @@ export default async function JuryOrgPage({ params }: { params: { id: string } }
         <div className="split">
           <div className="pane stack">
             <section className="card accent" id="details">
-              <h2>organisation details</h2>
+              <OrgDetailsHeading orgId={org.id} hasFactsheet={Boolean(org.factsheet)} />
               <OrgDetails website={org.website} idPrefix="j" details={parseDetails(org.details)} />
             </section>
 

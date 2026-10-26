@@ -514,3 +514,14 @@ table.summary th { padding: 6px 12px; }
 
 /* a little breathing room between bullet points everywhere */
 .od-bullets li + li, .param-help li + li, .guide li + li { margin-top: 6px; }
+
+/* organisation details heading with the factsheet button beside it; the button never cuts its label */
+.od-heading { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3) var(--space-4); flex-wrap: wrap; margin-bottom: var(--space-3); }
+.od-heading h2 { margin: 0; }
+.factsheet-btn { white-space: nowrap; flex-shrink: 0; }
+
+/* narrow screens: the details and the scoring column stack, and the factsheet button wraps its label */
+@media (max-width: 860px) {
+  .split, .split.even { grid-template-columns: minmax(0, 1fr); }
+  .factsheet-btn { white-space: normal; text-align: left; flex-shrink: 1; height: auto; padding-top: 8px; padding-bottom: 8px; }
+}

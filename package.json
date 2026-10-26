@@ -13,7 +13,8 @@
     "db:seed": "tsx prisma/seed.ts",
     "postinstall": "prisma generate",
     "vercel-build": "prisma generate && prisma migrate deploy && next build",
-    "db:import-orgs": "tsx scripts/import-orgs.ts"
+    "db:import-orgs": "tsx scripts/import-orgs.ts",
+    "db:import-factsheets": "tsx scripts/import-factsheets.ts"
   },
   "dependencies": {
     "@prisma/client": "5.18.0",
