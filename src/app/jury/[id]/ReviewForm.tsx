@@ -70,7 +70,7 @@ export function ReviewForm({ orgId, existing, existingVerdict, existingRemarks }
     setSubmitting(false);
     try { sessionStorage.removeItem(pendingKey); } catch {}
     if (state.ok) {
-      // a saved review is acknowledged with the thank-you slide, then the person is taken back to the list
+      // a saved review is acknowledged with the thank-you dialog; the person chooses when to go back to the list
       setThanksOpen(true);
       setDirty(false);
     } else if (state.error) {
@@ -78,12 +78,6 @@ export function ReviewForm({ orgId, existing, existingVerdict, existingRemarks }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
-
-  React.useEffect(() => {
-    if (!thanksOpen) return;
-    const t = window.setTimeout(() => router.push('/jury'), 4500);
-    return () => window.clearTimeout(t);
-  }, [thanksOpen, router]);
 
   // warn before leaving with unsaved scores
   React.useEffect(() => {
@@ -263,11 +257,12 @@ export function ReviewForm({ orgId, existing, existingVerdict, existingRemarks }
 
       <InfoDialog
         open={thanksOpen}
-        title="thank you for submitting your scores and verdict"
-        onClose={() => router.push('/jury')}
+        title="thank you"
+        celebrate
+        onClose={() => setThanksOpen(false)}
         actions={<Link href="/jury" className="btn">back to the homepage</Link>}
       >
-        your review has been saved. you will be taken back to the homepage in a moment.
+        your scores and verdict have been saved.
       </InfoDialog>
 
       <ConfirmDialog

@@ -525,3 +525,20 @@ table.summary th { padding: 6px 12px; }
   .split, .split.even { grid-template-columns: minmax(0, 1fr); }
   .factsheet-btn { white-space: normal; text-align: left; flex-shrink: 1; height: auto; padding-top: 8px; padding-bottom: 8px; }
 }
+
+/* thank-you celebration: a big heading that pops in, a bouncing tick and a burst of confetti */
+
+.dialog h2.celebrate { font-size: 34px; letter-spacing: 0.08em; text-transform: uppercase; line-height: 1.1; margin-bottom: var(--space-3); }
+.overlay[data-open='true'] .dialog h2.celebrate { animation: thanks-pop 800ms cubic-bezier(0.2, 1.5, 0.4, 1) 120ms both; }
+.overlay[data-open='true'] .dialog .tick-lg.celebrate { animation: thanks-tick 700ms cubic-bezier(0.2, 1.6, 0.4, 1) both; }
+.confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.confetti i { position: absolute; top: -16px; left: var(--x); background: var(--c); opacity: 0; }
+.overlay[data-open='true'] .confetti i { animation: confetti-fall var(--t) ease-in var(--d) 1 both; }
+@keyframes thanks-pop { 0% { opacity: 0; transform: scale(0.5); } 55% { opacity: 1; transform: scale(1.14); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes thanks-tick { 0% { transform: scale(0) rotate(-40deg); } 100% { transform: scale(1) rotate(0); } }
+@keyframes confetti-fall { 0% { opacity: 1; transform: translate(0, 0) rotate(0); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx), 440px) rotate(var(--r)); } }
+
+/* the thank-you card is centred: tick, heading, message and the button */
+.dialog.celebrating { text-align: center; }
+.dialog.celebrating .tick-lg { margin-left: auto; margin-right: auto; }
+.dialog.celebrating .dialog-actions { justify-content: center; }
