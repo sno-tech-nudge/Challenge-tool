@@ -50,20 +50,21 @@ export async function getOrgForJuror(orgId: string, jurorId: string) {
       factsheet: { select: { orgId: true } },
       jurorNotes: { where: { jurorId }, select: { text: true } },
       reviewDrafts: { where: { jurorId }, select: { data: true, updatedAt: true } },
-      scores: { where: { jurorId }, select: { entries: true, total: true, verdict: true, internalRemarks: true } },
+      scores: { where: { jurorId }, select: { entries: true, total: true, verdict: true, internalRemarks: true, rescoreCount: true } },
     },
   });
 }
 
 export async function listSnapshot() {
   const orgs = (await prisma.org.findMany({
-    include: { scores: { select: { total: true } } },
+    include: { scores: { select: { total: true, rescoredAt: true } } },
   })).sort(byName);
   return orgs.map((o) => ({
     id: o.id,
     name: o.name,
     slot: slotLabel(o),
     verdict: o.verdict,
+    rescored: o.scores.filter((s) => s.rescoredAt).length,
     ...snapshot(o.ecociateScore, o.scores.map((s) => s.total)),
   }));
 }
@@ -109,4 +110,15 @@ export async function listTeam() {
     select: { id: true, name: true, email: true, role: true, _count: { select: { scores: true } } },
   });
   return users.map((u) => ({ id: u.id, name: u.name, email: u.email, role: u.role, reviews: u._count.scores }));
+}
+
+/** Reviews that a juror rescored in the last week, newest first: what the admin is told about. */
+export async function recentRescores() {
+  const since = new Date(Date.now() - 7 * 24 * 3600 * 1000);
+  return prisma.juryScore.findMany({
+    where: { rescoredAt: { gte: since } },
+    orderBy: { rescoredAt: 'desc' },
+    take: 12,
+    select: { orgId: true, total: true, previousTotal: true, rescoredAt: true, rescoreCount: true, juror: { select: { name: true } }, org: { select: { name: true } } },
+  });
 }

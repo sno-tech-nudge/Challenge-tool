@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useFormState } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { submitReviewAction, clearReviewAction, saveDraftAction, type DraftData, type FormState } from '@/lib/actions';
+import { submitReviewAction, clearReviewAction, saveDraftAction, discardDraftAction, type DraftData, type FormState } from '@/lib/actions';
 import { PARAMETERS, SCORE_MIN, SCORE_MAX, SCORE_STEP, weightedPoints, computeTotal, type ScoreEntry } from '@/lib/rubric';
 import { JURY_MAX } from '@/lib/constants';
 import { toJuryScale } from '@/lib/scoring';
@@ -39,21 +39,22 @@ export function ReviewForm({
 }) {
   const toast = useToast();
   const router = useRouter();
-  // the interview slot decides whether scoring is open: closed until it starts, and no changes once it has ended
+  // the interview slot decides whether scoring is open: closed until it starts. A submitted review is read-only
+  // until the juror presses rescore, and the admin is told when they submit it again.
   const now = useNow(serverNow);
   const start = slotStart ? new Date(slotStart) : null;
   const end = slotEnd ? new Date(slotEnd) : null;
   const phase = slotPhase(start, end, now);
-  const access = reviewAccess(phase, existing.length > 0);
+  const access = reviewAccess(phase);
   const locked = !access.canSubmit;
+  const hasReview = existing.length > 0;
+  const [rescoring, setRescoring] = React.useState(hasReview && Boolean(draft));
+  const readOnly = locked || (hasReview && !rescoring);
   const slotNote = (() => {
-    if (!start) return null;
-    if (access.why === 'before') return `scoring opens on ${formatMoment(start)}. until then you can read everything about the organisation.`;
-    if (access.why === 'ended') return 'this slot has ended. the scores you submitted are shown below and can no longer be changed.';
-    if (!end) return null;
-    return existing.length
-      ? `you can change your scores until ${formatMoment(end)}.`
-      : `this slot ends on ${formatMoment(end)}. you can still submit your scores afterwards, but once the slot has ended they cannot be changed.`;
+    if (access.why === 'before' && start) return `scoring opens on ${formatMoment(start)}. until then you can read everything about the organisation.`;
+    if (rescoring) return 'you are rescoring this organisation. nothing changes until you submit, and the admin is told when you do.';
+    if (hasReview) return `your scores are submitted${phase === 'ended' ? ' and this slot has ended' : ''}. to change them, press rescore. the admin is told when you submit again.`;
+    return null;
   })();
   const [state, action] = useFormState<FormState, FormData>(submitReviewAction, {});
   const byKey = new Map(existing.map((e) => [e.key, e]));
@@ -82,8 +83,10 @@ export function ReviewForm({
   const lastSent = React.useRef<string>(JSON.stringify({ scores, remarks, verdict, comment: internal }));
   const latestDraft = React.useRef<DraftData>({ scores, remarks, verdict, comment: internal });
   latestDraft.current = { scores, remarks, verdict, comment: internal };
-  const lockedRef = React.useRef(locked);
-  lockedRef.current = locked;
+  const lockedRef = React.useRef(readOnly);
+  lockedRef.current = readOnly;
+  const submitKind = React.useRef<'first' | 'rescore'>('first');
+  const [thanksKind, setThanksKind] = React.useState<'first' | 'rescore' | 'same'>('first');
 
   const filled = PARAMETERS.filter((p) => scores[p.key] !== '').length;
   // same formula the server uses; the saved total is the weighted total out of 100
@@ -95,7 +98,7 @@ export function ReviewForm({
     return !Number.isFinite(n) || n < SCORE_MIN || n > SCORE_MAX || Math.round(n / SCORE_STEP) * SCORE_STEP !== n;
   };
   const anyInvalid = PARAMETERS.some((p) => invalid(p.key));
-  const canSubmit = !locked && filled === PARAMETERS.length && !anyInvalid && verdict !== '' && internal.trim() !== '';
+  const canSubmit = !readOnly && filled === PARAMETERS.length && !anyInvalid && verdict !== '' && internal.trim() !== '';
 
   // each submit produces a new state object: acknowledge a save once, or show the error
   // saving re-renders the page, which can remount this form and drop its state before the thank-you
@@ -103,9 +106,11 @@ export function ReviewForm({
   const pendingKey = `review-pending:${orgId}`;
   React.useEffect(() => {
     try {
-      const at = Number(sessionStorage.getItem(pendingKey));
+      const [stamp, kind] = (sessionStorage.getItem(pendingKey) ?? '').split('|');
+      const at = Number(stamp);
       if (at && Date.now() - at < 30000 && existing.length > 0) {
         sessionStorage.removeItem(pendingKey);
+        setThanksKind(kind === 'rescore' ? 'rescore' : 'first');
         setThanksOpen(true);
       }
     } catch {}
@@ -117,9 +122,11 @@ export function ReviewForm({
     try { sessionStorage.removeItem(pendingKey); } catch {}
     if (state.ok) {
       // a saved review is acknowledged with the thank-you dialog; the person chooses when to go back to the list
+      setThanksKind(state.unchanged ? 'same' : submitKind.current);
       setThanksOpen(true);
       setDirty(false);
       setRestored(false);
+      setRescoring(false);
     } else if (state.error) {
       lastSent.current = ''; // the next change saves the draft again
       toast(state.error, 'error');
@@ -140,7 +147,7 @@ export function ReviewForm({
 
   // save the draft a moment after typing stops
   React.useEffect(() => {
-    if (locked) return;
+    if (readOnly) return;
     const payload: DraftData = { scores, remarks, verdict, comment: internal };
     const json = JSON.stringify(payload);
     if (json === lastSent.current) return;
@@ -156,7 +163,7 @@ export function ReviewForm({
       } else setDraftState((d) => ({ ...d, status: 'error' }));
     }, 1000);
     return () => window.clearTimeout(t);
-  }, [scores, remarks, verdict, internal, locked, orgId]);
+  }, [scores, remarks, verdict, internal, readOnly, orgId]);
 
   // leaving the page (without a reload) with a draft not yet saved: save it now
   React.useEffect(() => () => {
@@ -164,7 +171,7 @@ export function ReviewForm({
   }, [orgId]);
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    if (locked) {
+    if (readOnly) {
       e.preventDefault();
       return;
     }
@@ -178,8 +185,9 @@ export function ReviewForm({
 
   function confirmSubmit() {
     confirmed.current = true;
+    submitKind.current = hasReview ? 'rescore' : 'first';
     lastSent.current = JSON.stringify({ scores, remarks, verdict, comment: internal }); // a pending draft save must not outlive the submit
-    try { sessionStorage.setItem(pendingKey, String(Date.now())); } catch {}
+    try { sessionStorage.setItem(pendingKey, `${Date.now()}|${submitKind.current}`); } catch {}
     setSubmitting(true);
     setSummaryOpen(false);
     formRef.current?.requestSubmit();
@@ -197,6 +205,7 @@ export function ReviewForm({
       setInternal('');
       setDirty(false);
       setRestored(false);
+      setRescoring(false);
       setDraftState({ status: 'idle' });
       lastSent.current = JSON.stringify({ scores: Object.fromEntries(PARAMETERS.map((p) => [p.key, ''])), remarks: Object.fromEntries(PARAMETERS.map((p) => [p.key, ''])), verdict: '', comment: '' });
       toast('review cleared');
@@ -204,12 +213,37 @@ export function ReviewForm({
     } else toast(res.error ?? 'could not clear review', 'error');
   }
 
+  // rescore: unlock the submitted review for editing; the admin is told when it is submitted again
+  function startRescore() {
+    setRescoring(true);
+    setRestored(false);
+    lastSent.current = JSON.stringify({ scores, remarks, verdict, comment: internal });
+  }
+
+  // cancel a rescore: back to the submitted scores, and drop the draft
+  async function cancelRescore() {
+    const submitted = new Map(existing.map((e) => [e.key, e]));
+    const s = Object.fromEntries(PARAMETERS.map((p) => [p.key, submitted.has(p.key) ? String(submitted.get(p.key)!.score) : '']));
+    const r = Object.fromEntries(PARAMETERS.map((p) => [p.key, submitted.get(p.key)?.remarks ?? '']));
+    setScores(s);
+    setRemarks(r);
+    setVerdict(existingVerdict ?? '');
+    setInternal(existingRemarks);
+    setRescoring(false);
+    setRestored(false);
+    setDirty(false);
+    setDraftState({ status: 'idle' });
+    lastSent.current = JSON.stringify({ scores: s, remarks: r, verdict: existingVerdict ?? '', comment: existingRemarks });
+    await discardDraftAction(orgId);
+  }
+
   return (
     <>
       <form id={FORM_ID} ref={formRef} action={action} onSubmit={onSubmit} onChange={() => setDirty(true)}>
         <input type="hidden" name="orgId" value={orgId} />
+        {hasReview && <input type="hidden" name="rescore" value="1" />}
         {slotNote && <p className={`slot-note${locked ? ' locked' : ''}`} role="status">{slotNote}</p>}
-        {restored && !locked && <p className="slot-note" role="status">your saved draft has been restored. it is not submitted until you press submit.</p>}
+        {restored && !readOnly && <p className="slot-note" role="status">your saved draft has been restored. it is not submitted until you press submit.</p>}
         {PARAMETERS.map((p, i) => {
           const n = Number(scores[p.key]) || 0;
           const pct = Math.min(100, (n / SCORE_MAX) * 100);
@@ -239,7 +273,7 @@ export function ReviewForm({
                     max={SCORE_MAX}
                     step={SCORE_STEP}
                     required
-                    disabled={locked}
+                    disabled={readOnly}
                     className={invalid(p.key) ? 'field-error' : undefined}
                     aria-invalid={invalid(p.key)}
                     value={scores[p.key]}
@@ -249,7 +283,7 @@ export function ReviewForm({
                 </div>
                 <div style={{ flex: '1 1 200px' }}>
                   <label htmlFor={`remarks_${p.key}`}>remarks</label>
-                  <textarea id={`remarks_${p.key}`} name={`remarks_${p.key}`} disabled={locked} value={remarks[p.key]} onChange={(e) => setRemarks({ ...remarks, [p.key]: e.target.value })} style={{ minHeight: 38 }} />
+                  <textarea id={`remarks_${p.key}`} name={`remarks_${p.key}`} disabled={readOnly} value={remarks[p.key]} onChange={(e) => setRemarks({ ...remarks, [p.key]: e.target.value })} style={{ minHeight: 38 }} />
                 </div>
               </div>
               {invalid(p.key) && <p className="err">enter a score from {SCORE_MIN} to {SCORE_MAX} (whole or half points)</p>}
@@ -265,7 +299,7 @@ export function ReviewForm({
             </div>
             <div className="small muted">{filled} of {PARAMETERS.length} scored</div>
           </div>
-          {!locked && (
+          {!readOnly && (
             <p className="hint draft-status" aria-live="polite">
               {draftState.status === 'saving' && 'saving your draft…'}
               {draftState.status === 'saved' && draftState.at && `draft saved ${formatMoment(new Date(draftState.at))}. you can leave and come back to finish.`}
@@ -287,24 +321,32 @@ export function ReviewForm({
               <div className="verdict-choice" role="radiogroup" aria-label="your final verdict">
                 {([['Y', 'yes'], ['N', 'no']] as const).map(([v, label]) => (
                   <label key={v} className={verdict === v ? `on ${v === 'Y' ? 'yes' : 'no'}` : ''}>
-                    <input type="radio" name="verdict" value={v} form={FORM_ID} disabled={locked} checked={verdict === v} onChange={() => setVerdict(v)} /> {label}
+                    <input type="radio" name="verdict" value={v} form={FORM_ID} disabled={readOnly} checked={verdict === v} onChange={() => setVerdict(v)} /> {label}
                   </label>
                 ))}
               </div>
             </div>
             <div>
               <label htmlFor="internalRemarks">comment section (required)</label>
-              <textarea id="internalRemarks" name="internalRemarks" form={FORM_ID} disabled={locked} value={internal} onChange={(e) => setInternal(e.target.value)} required placeholder="the reasoning behind your scores and verdict" />
+              <textarea id="internalRemarks" name="internalRemarks" form={FORM_ID} disabled={readOnly} value={internal} onChange={(e) => setInternal(e.target.value)} required placeholder="the reasoning behind your scores and verdict" />
               <p className="hint" style={{ marginTop: 4 }}>shown to the admin team with your review.</p>
             </div>
           </div>
           {state.error && <p className="err" role="alert">{state.error}</p>}
           <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-4)', flexWrap: 'wrap', alignItems: 'center' }}>
-            <button type="submit" form={FORM_ID} className="btn" disabled={submitting || !canSubmit}>{submitting ? 'saving…' : existing.length ? 'update review' : 'submit review'}</button>
-            {existing.length > 0 && (
-              <button type="button" className="btn danger" disabled={locked} onClick={() => setConfirmClear(true)}>clear my review</button>
+            {readOnly && hasReview && !locked ? (
+              <>
+                <button type="button" className="btn" onClick={startRescore}>rescore</button>
+                <a className="btn secondary" href={`/api/review-pdf/${orgId}`} download>download my scores (pdf)</a>
+                <button type="button" className="btn danger" onClick={() => setConfirmClear(true)}>clear my review</button>
+              </>
+            ) : (
+              <>
+                <button type="submit" form={FORM_ID} className="btn" disabled={submitting || !canSubmit}>{submitting ? 'saving…' : hasReview ? 'submit rescore' : 'submit review'}</button>
+                {rescoring && <button type="button" className="btn secondary" onClick={cancelRescore}>cancel rescore</button>}
+              </>
             )}
-            {!canSubmit && !locked && <span className="hint">{filled < PARAMETERS.length ? 'score all six criteria' : anyInvalid ? 'fix the highlighted score' : verdict === '' ? 'choose yes or no' : 'add a comment'} to submit.</span>}
+            {!canSubmit && !readOnly && <span className="hint">{filled < PARAMETERS.length ? 'score all six criteria' : anyInvalid ? 'fix the highlighted score' : verdict === '' ? 'choose yes or no' : 'add a comment'} to submit.</span>}
           </div>
         </section>,
         slot,
@@ -313,7 +355,7 @@ export function ReviewForm({
       <ConfirmDialog
         open={summaryOpen}
         wide
-        title={existing.length ? 'are you sure you want to update your scores?' : 'are you sure you want to submit your scores?'}
+        title={hasReview ? 'are you sure you want to submit your rescore?' : 'are you sure you want to submit your scores?'}
         body={
           <>
             <table className="summary">
@@ -353,9 +395,14 @@ export function ReviewForm({
         title="thank you"
         celebrate
         onClose={() => setThanksOpen(false)}
-        actions={<Link href="/jury" className="btn">back to the homepage</Link>}
+        actions={
+          <>
+            <a className="btn secondary" href={`/api/review-pdf/${orgId}`} download>download my scores (pdf)</a>
+            <Link href="/jury" className="btn">back to the homepage</Link>
+          </>
+        }
       >
-        your scores and verdict have been saved.
+        {thanksKind === 'rescore' ? 'your rescore has been saved and the admin has been told.' : thanksKind === 'same' ? 'your scores are the same as before, so nothing was changed and the admin was not told.' : 'your scores and verdict have been saved.'}
       </InfoDialog>
 
       <ConfirmDialog

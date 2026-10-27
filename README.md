@@ -16,6 +16,7 @@ Stack: Next.js 14 (App Router), TypeScript, Prisma, **Postgres**. Hosted on Verc
   - A **scoring guide** card (opens the rubric, the scale and the questions behind each criterion; jurors have no scoring guide button in the top bar, admins do) and the **start review** form: six criteria, each scored out of 10 in half points, with a live total out of 40.
   - A private **your notes** box under internal remarks. Only that juror can read their notes; they save automatically.
   - **Drafts**: anything typed on the review form (scores, remarks, verdict, comment) is saved automatically a moment after typing stops, and is restored when the juror comes back, on any device. It is not a submission: it is replaced when they submit and deleted when they submit or clear. Drafts follow the slot rules, so nothing is saved while scoring is closed.
+  - **Submitted reviews are read-only.** A juror can **download my scores (pdf)** at any time (and from the thank-you box right after submitting): a PDF with every question and its weightage, their score and remarks for each, the total, their verdict and their comment. To change a review they press **rescore**, edit, and submit again (at any time once scoring has opened, including after the slot has ended). **The admin is told every time** (see below). Submitting a rescore with nothing changed is not counted. **Cancel rescore** goes back to the submitted scores.
   - A full-width **final verdict** section at the end: yes or no, plus a required comment. Submitting shows a summary to confirm (the buttons read "yes" then "no"), then a "THANK YOU" dialog. The juror chooses when to go back (nothing redirects automatically).
 - The previous and next buttons follow the same slot order. They stay locked until the juror has submitted their scores for the organisation, except while the organisation's slot has not opened yet (scoring is blocked then, so there is nothing to submit).
 - Scrolling the mouse wheel over a score box never changes the score.
@@ -24,6 +25,7 @@ Stack: Next.js 14 (App Router), TypeScript, Prisma, **Postgres**. Hosted on Verc
 
 - **Snapshot**: every organisation with the M&E score (out of 60), the jury score (out of 40), the final score (out of 100) and the admin verdict.
 - **Score card** per organisation: the same details and fact sheet button as jurors, internal remarks plus each juror's comment ("jury comments"), then on the right: the **ecociate score and reasoning** form, **scores by juror** (a table of every juror's scores per criterion, with a small **i** beside a score opening that juror's remark, and each juror's yes or no), and a **final score** row reading ecociate / 60 | scores by juror / 40 | final score / 100. Below both columns sits the admin's own **final verdict** with rationale, which feeds the snapshot.
+- **Rescores**: when a juror rescores, the admin sees a **rescored** notice at the top of that organisation's score card (who, when, and the total before and after), a tag on that juror's column and on the organisation in the snapshot, a **rescored recently** list on the admin home (last 7 days), and a "review rescored" entry in the activity log.
 - **Settings** (`/admin/settings`):
   - *team*: add a member (name, login id which is their email, password with a generate button), edit name or id, reset a password (leave the field empty to keep it), or remove them. **Removing a member also deletes every review they submitted**; the confirmation says how many, and the affected organisations' jury scores and final scores change. Removal cannot be undone, and you cannot remove yourself or the last admin.
   - *activity log*: who submitted, updated or cleared a review, changed a verdict, edited the Ecociate score, or changed a team member, in India time. Passwords are never written to the log.
@@ -46,8 +48,8 @@ Each organisation can have an interview slot. While no slot is set, scoring is o
 | when | what a juror can do |
 |---|---|
 | before the slot starts | read everything about the organisation, but **scoring is blocked** (the form is locked and the server refuses submissions) |
-| from the start | score and submit; a submitted review can still be changed |
-| after the slot ends | scoring **stays open** for a first submission, but a submitted review can **no longer be changed or cleared** |
+| from the start | score and submit |
+| after the slot ends | scoring **stays open**; a submitted review is changed only by pressing rescore, and the admin is told |
 
 Times are shown in India time (IST). The page notices the slot opening or ending without a reload. To set slots, add them to `data/orgs.json` as ISO times with the India offset, then import:
 

@@ -3,7 +3,7 @@ import { requireRole } from '@/lib/auth/session';
 import { getOrgForAdmin, listJurors, orgNeighbours } from '@/lib/queries';
 import { PARAMETERS, parseEntries } from '@/lib/rubric';
 import { snapshot, toJuryScale } from '@/lib/scoring';
-import { slotLabel } from '@/lib/slots';
+import { formatMoment, slotLabel } from '@/lib/slots';
 import { parseDetails } from '@/lib/orgSections';
 import { ECOCIATE_MAX, JURY_MAX } from '@/lib/constants';
 import { Shell } from '@/components/Shell';
@@ -26,7 +26,9 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
 
   const snap = snapshot(org.ecociateScore, org.scores.map((s) => s.total));
   // one column per juror account, so a juror who has not scored yet still shows as an empty column
-  const byJuror = new Map(org.scores.map((s) => [s.jurorId, { total: s.total, verdict: s.verdict, entries: new Map(parseEntries(s.entries).map((e) => [e.key, e])) }]));
+  const byJuror = new Map(org.scores.map((s) => [s.jurorId, { total: s.total, rescored: s.rescoreCount > 0, verdict: s.verdict, entries: new Map(parseEntries(s.entries).map((e) => [e.key, e])) }]));
+  // jurors who submitted again with rescore: the admin is told here
+  const rescored = org.scores.filter((s) => s.rescoreCount > 0 && s.rescoredAt);
   const finalTone = snap.final === null ? null : scoreTone(snap.final, 100);
 
   return (
@@ -38,6 +40,18 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
         actions={org.verdict ? <Pill tone={org.verdict === 'Y' ? 'good' : 'bad'}>verdict: {org.verdict === 'Y' ? 'yes' : 'no'}</Pill> : <Pill tone="warn">verdict pending</Pill>}
       />
       <div className="wrap">
+        {rescored.length > 0 && (
+          <div className="rescore-note" role="status">
+            <strong>rescored</strong>
+            {rescored.map((s) => (
+              <span key={s.id}>
+                {s.juror.name} rescored this organisation on {formatMoment(s.rescoredAt!)}
+                {s.previousTotal !== null && ` (${toJuryScale(s.previousTotal)} to ${toJuryScale(s.total)} out of ${JURY_MAX})`}
+                {s.rescoreCount > 1 && `, ${s.rescoreCount} times in all`}.
+              </span>
+            ))}
+          </div>
+        )}
         <OrgPager base="/admin" baseLabel="snapshot" name={org.name} {...nav} />
 
         <div className="split even">
@@ -75,7 +89,7 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
                 <thead>
                   <tr>
                     <th>criterion</th><th className="num">weight</th>
-                    {jurors.map((j) => <th key={j.id} className="num">{j.name}</th>)}
+                    {jurors.map((j) => <th key={j.id} className="num">{j.name}{byJuror.get(j.id)?.rescored && <span className="rescored-tag block">rescored</span>}</th>)}
                   </tr>
                 </thead>
                 <tbody>

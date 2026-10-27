@@ -1,5 +1,8 @@
 import { requireRole } from '@/lib/auth/session';
-import { listSnapshot, jurorProgress } from '@/lib/queries';
+import Link from 'next/link';
+import { listSnapshot, jurorProgress, recentRescores } from '@/lib/queries';
+import { formatMoment } from '@/lib/slots';
+import { toJuryScale } from '@/lib/scoring';
 import { ECOCIATE_MAX, JURY_MAX } from '@/lib/constants';
 import { Shell } from '@/components/Shell';
 import { PageBanner } from '@/components/ui';
@@ -9,7 +12,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function AdminSnapshot() {
   const user = await requireRole('ADMIN');
-  const [rows, progress] = await Promise.all([listSnapshot(), jurorProgress()]);
+  const [rows, progress, rescores] = await Promise.all([listSnapshot(), jurorProgress(), recentRescores()]);
 
   const scored = rows.filter((r) => r.final !== null);
   const decided = rows.filter((r) => r.verdict).length;
@@ -49,6 +52,24 @@ export default async function AdminSnapshot() {
             </div>
           </div>
         </section>
+
+        {rescores.length > 0 && (
+          <section className="card rescore-card" aria-label="rescored recently">
+            <h2>rescored recently</h2>
+            <p className="hint">jurors who changed a submitted review in the last 7 days.</p>
+            <ul>
+              {rescores.map((r) => (
+                <li key={`${r.orgId}-${r.juror.name}`}>
+                  <Link href={`/admin/${r.orgId}`}>{r.org.name}</Link>
+                  <span>
+                    {r.juror.name}{r.previousTotal !== null && `: ${toJuryScale(r.previousTotal)} to ${toJuryScale(r.total)} / ${JURY_MAX}`}
+                    <span className="muted"> · {formatMoment(r.rescoredAt!)}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         <SnapshotTable rows={rows} />
       </div>

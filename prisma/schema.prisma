@@ -81,6 +81,10 @@ model JuryScore {
   // the juror's own yes / no call ('Y' or 'N') and their internal remarks; null on older reviews
   verdict         String?
   internalRemarks String?
+  // set when the juror submits again with "rescore": how many times, when last, and the total before that
+  rescoreCount  Int       @default(0)
+  rescoredAt    DateTime?
+  previousTotal Float?
   updatedAt       DateTime @updatedAt
 
   @@unique([orgId, jurorId])

@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "JuryScore" ADD COLUMN "rescoreCount" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN "rescoredAt" TIMESTAMP(3),
+ADD COLUMN "previousTotal" DOUBLE PRECISION;

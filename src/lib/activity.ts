@@ -3,6 +3,7 @@ import { prisma } from './db';
 export const ACTIVITY_ACTIONS = {
   REVIEW_SUBMITTED: 'review submitted',
   REVIEW_UPDATED: 'review updated',
+  REVIEW_RESCORED: 'review rescored',
   REVIEW_CLEARED: 'review cleared',
   VERDICT_CHANGED: 'verdict changed',
   ECOCIATE_CHANGED: 'ecociate score changed',

@@ -12,6 +12,8 @@ import { logActivity } from './activity';
 export interface FormState {
   error?: string;
   ok?: boolean;
+  /** the submit changed nothing, so it was not counted as a rescore */
+  unchanged?: boolean;
 }
 
 /** What a juror has typed on the review form but not submitted. */
@@ -40,12 +42,14 @@ export async function submitReviewAction(_prev: FormState, formData: FormData): 
   const org = await prisma.org.findUnique({ where: { id: orgId }, select: { id: true, name: true, slotStart: true, slotEnd: true } });
   if (!org) return { error: 'organisation not found' };
 
-  // the slot decides whether scoring is open: not before it starts, and no changes after it ends
-  const hasReview = (await prisma.juryScore.count({ where: { orgId, jurorId: user.id } })) > 0;
-  const access = reviewAccess(slotPhase(org.slotStart, org.slotEnd, new Date()), hasReview);
-  if (!access.canSubmit) {
-    return { error: access.why === 'before' && org.slotStart ? `scoring opens on ${formatMoment(org.slotStart)}` : 'this slot has ended, so your submitted scores can no longer be changed' };
+  // scoring opens when the slot starts. After that a juror can submit, and can change a submitted review
+  // only by rescoring on purpose (the form sends rescore=1), which tells the admin.
+  const previous = await prisma.juryScore.findUnique({ where: { orgId_jurorId: { orgId, jurorId: user.id } } });
+  if (!reviewAccess(slotPhase(org.slotStart, org.slotEnd, new Date())).canSubmit) {
+    return { error: org.slotStart ? `scoring opens on ${formatMoment(org.slotStart)}` : 'scoring is not open yet' };
   }
+  const rescore = String(formData.get('rescore') ?? '') === '1';
+  if (previous && !rescore) return { error: 'this review is already submitted. press rescore to change it' };
 
   const entries: ScoreEntry[] = [];
   for (const p of PARAMETERS) {
@@ -65,17 +69,23 @@ export async function submitReviewAction(_prev: FormState, formData: FormData): 
   // each score is out of 10; the stored total is the weighted total out of 100
   const total = computeTotal(Object.fromEntries(entries.map((e) => [e.key, e.score])));
 
-  const previous = await prisma.juryScore.findUnique({ where: { orgId_jurorId: { orgId, jurorId: user.id } }, select: { total: true } });
+  const entriesJson = JSON.stringify(entries);
   // a submitted review replaces any saved draft
   await prisma.reviewDraft.deleteMany({ where: { orgId, jurorId: user.id } });
-  await prisma.juryScore.upsert({
-    where: { orgId_jurorId: { orgId, jurorId: user.id } },
-    create: { orgId, jurorId: user.id, entries: JSON.stringify(entries), total, verdict, internalRemarks },
-    update: { entries: JSON.stringify(entries), total, verdict, internalRemarks },
-  });
+  if (previous && previous.entries === entriesJson && previous.verdict === verdict && (previous.internalRemarks ?? '') === internalRemarks) {
+    return { ok: true, unchanged: true }; // nothing changed, so it is not a rescore and the admin is not told
+  }
+  if (previous) {
+    await prisma.juryScore.update({
+      where: { orgId_jurorId: { orgId, jurorId: user.id } },
+      data: { entries: entriesJson, total, verdict, internalRemarks, rescoreCount: { increment: 1 }, rescoredAt: new Date(), previousTotal: previous.total },
+    });
+  } else {
+    await prisma.juryScore.create({ data: { orgId, jurorId: user.id, entries: entriesJson, total, verdict, internalRemarks } });
+  }
   await logActivity({
     actor: user,
-    action: previous ? 'REVIEW_UPDATED' : 'REVIEW_SUBMITTED',
+    action: previous ? 'REVIEW_RESCORED' : 'REVIEW_SUBMITTED',
     org,
     detail: (previous ? `total ${toJuryScale(previous.total)} → ${toJuryScale(total)} / ${JURY_MAX}` : `total ${toJuryScale(total)} / ${JURY_MAX}`) + `, verdict ${verdictWord(verdict)}`,
   });
@@ -90,8 +100,8 @@ export async function clearReviewAction(orgId: string): Promise<FormState> {
     where: { orgId_jurorId: { orgId, jurorId: user.id } },
     select: { total: true, org: { select: { id: true, name: true, slotStart: true, slotEnd: true } } },
   });
-  if (existing && !reviewAccess(slotPhase(existing.org.slotStart, existing.org.slotEnd, new Date()), true).canSubmit) {
-    return { error: 'this slot has ended, so your submitted scores can no longer be changed' };
+  if (existing && !reviewAccess(slotPhase(existing.org.slotStart, existing.org.slotEnd, new Date())).canSubmit) {
+    return { error: 'scoring for this organisation is not open yet' };
   }
   await prisma.juryScore.deleteMany({ where: { orgId, jurorId: user.id } });
   await prisma.reviewDraft.deleteMany({ where: { orgId, jurorId: user.id } });
@@ -157,6 +167,13 @@ export async function saveEcociateAction(_prev: FormState, formData: FormData): 
   return { ok: true };
 }
 
+/** Drops a juror's unsubmitted draft (used when they cancel a rescore). */
+export async function discardDraftAction(orgId: string): Promise<FormState> {
+  const user = await requireRole('JURY');
+  await prisma.reviewDraft.deleteMany({ where: { orgId, jurorId: user.id } });
+  return { ok: true };
+}
+
 /** A juror's private notes about an organisation. Saved as they type; an empty note is removed.
  *  No page refresh is triggered, so typing is never interrupted. */
 export async function saveNoteAction(orgId: string, text: string): Promise<FormState> {
@@ -174,8 +191,7 @@ export async function saveDraftAction(orgId: string, draft: DraftData): Promise<
   const user = await requireRole('JURY');
   const org = await prisma.org.findUnique({ where: { id: orgId }, select: { slotStart: true, slotEnd: true } });
   if (!org) return { error: 'organisation not found' };
-  const hasReview = (await prisma.juryScore.count({ where: { orgId, jurorId: user.id } })) > 0;
-  if (!reviewAccess(slotPhase(org.slotStart, org.slotEnd, new Date()), hasReview).canSubmit) return { error: 'scoring is closed for this organisation' };
+  if (!reviewAccess(slotPhase(org.slotStart, org.slotEnd, new Date())).canSubmit) return { error: 'scoring is closed for this organisation' };
 
   const str = (v: unknown, max: number) => String(v ?? '').slice(0, max);
   const clean: DraftData = {

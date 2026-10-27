@@ -16,6 +16,7 @@ interface Row {
   juryAvg: number | null;
   juryCount: number;
   final: number | null;
+  rescored: number;
 }
 
 type SortKey = 'name' | 'ecociate' | 'juryAvg' | 'final';
@@ -110,7 +111,8 @@ export function SnapshotTable({ rows }: { rows: Row[] }) {
             {visible.map((r) => (
               <tr key={r.id} className="clickable" onClick={() => router.push(`/admin/${r.id}`)}>
                 <td className="muted">{rows.indexOf(r) + 1}</td>
-                <td><Link href={`/admin/${r.id}`} className="org-link" onClick={(e) => e.stopPropagation()}>{r.name}</Link></td>
+                <td><Link href={`/admin/${r.id}`} className="org-link" onClick={(e) => e.stopPropagation()}>{r.name}</Link>
+                  {r.rescored > 0 && <span className="rescored-tag" title={`${r.rescored} juror${r.rescored === 1 ? '' : 's'} rescored this organisation`}>rescored</span>}</td>
                 <td>{r.slot ?? '-'}</td>
                 <td className="num">{show(r.ecociate)}</td>
                 <td className="num">{show(r.juryAvg)}</td>

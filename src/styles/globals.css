@@ -599,3 +599,14 @@ table.compact td.num { font-variant-numeric: tabular-nums; }
 .guide-card .row { flex-wrap: nowrap; align-items: center; gap: var(--space-4); }
 .guide-card .hint { margin: 2px 0 0; }
 .guide-card h2 { font-size: var(--fs-h3, 18px); }
+
+/* the admin is told when a juror rescores: a note on the score card, a tag in tables, a list on the home view */
+.rescore-note { display: flex; flex-direction: column; gap: 2px; margin: 0 0 var(--space-4); padding: var(--space-3) var(--space-4); border-left: 3px solid var(--status-warn); background: var(--surface-tint); font-size: var(--fs-small); line-height: 1.5; }
+.rescore-note strong { text-transform: uppercase; letter-spacing: 0.06em; font-size: var(--fs-caption); color: var(--warn-text); }
+.rescored-tag { display: inline-block; margin-left: var(--space-2); padding: 1px 7px; border: 1px solid var(--status-warn); color: var(--warn-text); font-size: var(--fs-caption); font-weight: var(--fw-bold); text-transform: lowercase; letter-spacing: 0; white-space: nowrap; }
+.rescored-tag.block { display: block; margin: 4px 0 0 auto; width: fit-content; }
+.rescore-card { border-left: 3px solid var(--status-warn); }
+.rescore-card h2 { margin-bottom: 2px; }
+.rescore-card ul { list-style: none; margin: var(--space-3) 0 0; padding: 0; display: grid; gap: var(--space-2); }
+.rescore-card li { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); justify-content: space-between; padding-top: var(--space-2); border-top: 1px solid var(--border-subtle); font-size: var(--fs-small); }
+.rescore-card li a { font-weight: var(--fw-bold); }

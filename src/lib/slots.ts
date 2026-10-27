@@ -3,8 +3,9 @@
 //   no slot set   scoring is open, as before
 //   before start  scoring is blocked (the organisation can still be read)
 //   from start    scoring is open, and stays open after the slot ends
-//   after end     a first submission is still allowed, but a submitted review can no longer
-//                 be changed or cleared
+//
+// A submitted review is changed by pressing "rescore" and submitting again, at any time once scoring
+// has opened (including after the slot has ended). The admin is told every time that happens.
 
 export type SlotPhase = 'none' | 'before' | 'open' | 'ended';
 
@@ -20,10 +21,9 @@ export function slotPhase(start: Date | null, end: Date | null, now: Date): Slot
   return 'open';
 }
 
-/** Whether a juror may submit right now, and why not. `hasReview` = they already submitted one. */
-export function reviewAccess(phase: SlotPhase, hasReview: boolean): { canSubmit: boolean; why?: 'before' | 'ended' } {
+/** Whether a juror may submit (or rescore) right now: only once the slot has opened. */
+export function reviewAccess(phase: SlotPhase): { canSubmit: boolean; why?: 'before' } {
   if (phase === 'before') return { canSubmit: false, why: 'before' };
-  if (phase === 'ended' && hasReview) return { canSubmit: false, why: 'ended' };
   return { canSubmit: true };
 }
 
