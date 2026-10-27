@@ -593,3 +593,9 @@ table.compact th.num { white-space: normal; min-width: 84px; line-height: 1.25; 
 table.compact td.num { font-variant-numeric: tabular-nums; }
 .remark-spacer { display: inline-block; width: 24px; height: 24px; flex-shrink: 0; }
 .score-cell { min-width: 52px; }
+
+/* the scoring guide card above the review form on the juror's organisation page */
+.guide-card { padding-top: var(--space-4); padding-bottom: var(--space-4); }
+.guide-card .row { flex-wrap: nowrap; align-items: center; gap: var(--space-4); }
+.guide-card .hint { margin: 2px 0 0; }
+.guide-card h2 { font-size: var(--fs-h3, 18px); }

@@ -13,6 +13,9 @@ import { OrgDetailsHeading } from '@/components/OrgDetailsHeading';
 import { toJuryScale } from '@/lib/scoring';
 import { slotLabel, slotPhase } from '@/lib/slots';
 import { JURY_MAX } from '@/lib/constants';
+import { SidePanel } from '@/components/SidePanel';
+import { RubricGuide } from '@/components/RubricGuide';
+import { BookOpen } from 'lucide-react';
 import { ReviewForm } from './ReviewForm';
 
 export const dynamic = 'force-dynamic';
@@ -72,6 +75,17 @@ export default async function JuryOrgPage({ params }: { params: { id: string } }
 
           <div className="pane">
           <div className="stack">
+          <section className="card guide-card" id="guide">
+            <div className="row" style={{ alignItems: 'center' }}>
+              <div>
+                <h2 style={{ margin: 0 }}>scoring guide</h2>
+                <p className="hint" style={{ marginTop: 2 }}>the rubric, the scale and the questions behind each criterion.</p>
+              </div>
+              <SidePanel label="open scoring guide" title="scoring guide" icon={<BookOpen size={14} strokeLinejoin="miter" strokeLinecap="square" />}>
+                <RubricGuide />
+              </SidePanel>
+            </div>
+          </section>
           <section className="card accent" id="review">
             <h2>start review</h2>
             <ReviewForm

@@ -5,6 +5,7 @@ import { useFormState, useFormStatus } from 'react-dom';
 import { saveEcociateAction, setVerdictAction, type FormState } from '@/lib/actions';
 import { ECOCIATE_MAX } from '@/lib/constants';
 import { useToast } from '@/components/Toast';
+import { AutoTextarea } from '@/components/AutoTextarea';
 
 function Submit({ label }: { label: string }) {
   const { pending } = useFormStatus();
@@ -40,7 +41,7 @@ export function VerdictForm({ orgId, verdict, comment }: { orgId: string; verdic
       </fieldset>
       <div>
         <label htmlFor="comment">comment and rationale</label>
-        <textarea id="comment" name="comment" defaultValue={comment} />
+        <AutoTextarea id="comment" name="comment" defaultValue={comment} />
       </div>
       {state.error && <p className="err" role="alert">{state.error}</p>}
       <Submit label="save verdict" />
@@ -60,7 +61,7 @@ export function EcociateForm({ orgId, score, remarks }: { orgId: string; score: 
       </div>
       <div>
         <label htmlFor="remarks">remarks and reasoning</label>
-        <textarea id="remarks" name="remarks" defaultValue={remarks} />
+        <AutoTextarea id="remarks" name="remarks" defaultValue={remarks} />
       </div>
       {state.error && <p className="err" role="alert">{state.error}</p>}
       <Submit label="save" />

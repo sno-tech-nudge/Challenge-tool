@@ -28,9 +28,11 @@ export function Shell({ user, children }: { user: User; children: React.ReactNod
           <NavLinks items={items} />
         </div>
         <div className="header-right">
-          <SidePanel label="scoring guide" title="scoring guide" icon={<BookOpen size={14} strokeLinejoin="miter" strokeLinecap="square" />}>
-            <RubricGuide />
-          </SidePanel>
+          {isAdmin && (
+            <SidePanel label="scoring guide" title="scoring guide" icon={<BookOpen size={14} strokeLinejoin="miter" strokeLinecap="square" />}>
+              <RubricGuide />
+            </SidePanel>
+          )}
           <ThemeToggle />
           <div className="who">
             <span className="who-name" title={user.name}>{user.name}</span>
