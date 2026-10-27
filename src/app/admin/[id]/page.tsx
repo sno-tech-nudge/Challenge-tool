@@ -12,9 +12,6 @@ import { OrgPager } from '@/components/OrgPager';
 import { OrgDetails } from '@/components/OrgDetails';
 import { InternalQueries } from '@/components/InternalQueries';
 import { RemarkTip } from '@/components/RemarkTip';
-import { SidePanel } from '@/components/SidePanel';
-import { RubricGuide } from '@/components/RubricGuide';
-import { BookOpen } from 'lucide-react';
 import { OrgDetailsHeading } from '@/components/OrgDetailsHeading';
 import { VerdictForm, EcociateForm } from './AdminForms';
 
@@ -68,17 +65,6 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
 
           <div className="pane">
             <div className="stack">
-              <section className="card guide-card" id="guide">
-                <div className="row" style={{ alignItems: 'center' }}>
-                  <div>
-                    <h2 style={{ margin: 0 }}>scoring guide</h2>
-                    <p className="hint" style={{ marginTop: 2 }}>the rubric, the scale and the questions behind each criterion.</p>
-                  </div>
-                  <SidePanel label="open scoring guide" title="scoring guide" icon={<BookOpen size={14} strokeLinejoin="miter" strokeLinecap="square" />}>
-                    <RubricGuide />
-                  </SidePanel>
-                </div>
-              </section>
               <section className="card accent" id="ecociate">
                 <h2>ecociate score and reasoning</h2>
                 <EcociateForm orgId={org.id} score={org.ecociateScore} remarks={org.ecociateRemarks ?? ''} />

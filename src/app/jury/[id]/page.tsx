@@ -10,12 +10,9 @@ import { OrgDetails } from '@/components/OrgDetails';
 import { InternalQueries } from '@/components/InternalQueries';
 import { JurorNotes } from '@/components/JurorNotes';
 import { OrgDetailsHeading } from '@/components/OrgDetailsHeading';
-import { SidePanel } from '@/components/SidePanel';
-import { RubricGuide } from '@/components/RubricGuide';
 import { toJuryScale } from '@/lib/scoring';
 import { slotLabel, slotPhase } from '@/lib/slots';
 import { JURY_MAX } from '@/lib/constants';
-import { BookOpen } from 'lucide-react';
 import { ReviewForm } from './ReviewForm';
 
 export const dynamic = 'force-dynamic';
@@ -75,17 +72,6 @@ export default async function JuryOrgPage({ params }: { params: { id: string } }
 
           <div className="pane">
           <div className="stack">
-          <section className="card guide-card" id="guide">
-            <div className="row" style={{ alignItems: 'center' }}>
-              <div>
-                <h2 style={{ margin: 0 }}>scoring guide</h2>
-                <p className="hint" style={{ marginTop: 2 }}>the rubric, the scale and the questions behind each criterion.</p>
-              </div>
-              <SidePanel label="open scoring guide" title="scoring guide" icon={<BookOpen size={14} strokeLinejoin="miter" strokeLinecap="square" />}>
-                <RubricGuide />
-              </SidePanel>
-            </div>
-          </section>
           <section className="card accent" id="review">
             <h2>start review</h2>
             <p className="hint" style={{ marginBottom: 'var(--space-4)' }}>
@@ -93,7 +79,7 @@ export default async function JuryOrgPage({ params }: { params: { id: string } }
               {org.slotStart
                 ? 'scoring opens when the slot starts and stays open afterwards, but once the slot has ended the scores you submitted can no longer be changed.'
                 : 'you can come back and edit your scores at any time.'}{' '}
-              please refer to the scoring guide above to go through the scoring rubric.
+              please use the scoring guide in the top bar to go through the scoring rubric.
             </p>
             <ReviewForm
               orgId={org.id}
