@@ -48,6 +48,8 @@ export async function getOrgForJuror(orgId: string, jurorId: string) {
       details: true,
       internalQueries: true,
       factsheet: { select: { orgId: true } },
+      jurorNotes: { where: { jurorId }, select: { text: true } },
+      reviewDrafts: { where: { jurorId }, select: { data: true, updatedAt: true } },
       scores: { where: { jurorId }, select: { entries: true, total: true, verdict: true, internalRemarks: true } },
     },
   });

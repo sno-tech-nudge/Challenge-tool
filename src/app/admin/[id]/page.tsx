@@ -12,6 +12,9 @@ import { OrgPager } from '@/components/OrgPager';
 import { OrgDetails } from '@/components/OrgDetails';
 import { InternalQueries } from '@/components/InternalQueries';
 import { RemarkTip } from '@/components/RemarkTip';
+import { SidePanel } from '@/components/SidePanel';
+import { RubricGuide } from '@/components/RubricGuide';
+import { BookOpen } from 'lucide-react';
 import { OrgDetailsHeading } from '@/components/OrgDetailsHeading';
 import { VerdictForm, EcociateForm } from './AdminForms';
 
@@ -65,41 +68,23 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
 
           <div className="pane">
             <div className="stack">
-              <section className="card accent" id="scores">
-                <h2>scores</h2>
+              <section className="card guide-card" id="guide">
                 <div className="row" style={{ alignItems: 'center' }}>
-                  <span>ecociate</span>
-                  <span className="big">{show(snap.ecociate)} <small>/ {ECOCIATE_MAX}</small></span>
+                  <div>
+                    <h2 style={{ margin: 0 }}>scoring guide</h2>
+                    <p className="hint" style={{ marginTop: 2 }}>the rubric, the scale and the questions behind each criterion.</p>
+                  </div>
+                  <SidePanel label="open scoring guide" title="scoring guide" icon={<BookOpen size={14} strokeLinejoin="miter" strokeLinecap="square" />}>
+                    <RubricGuide />
+                  </SidePanel>
                 </div>
-                <h3>jury scores</h3>
-                {jurors.length === 0 && <p className="muted small">no jurors yet.</p>}
-                {jurors.map((j) => {
-                  const raw = byJuror.get(j.id)?.total ?? null;
-                  const total = raw === null ? null : toJuryScale(raw);
-                  return (
-                    <div className="row" key={j.id} style={{ alignItems: 'center', padding: '4px 0' }}>
-                      <span>{j.name}</span>
-                      <span><strong>{show(total)}</strong> <span className="muted small">/ {JURY_MAX}</span></span>
-                    </div>
-                  );
-                })}
-                <div className="row" style={{ alignItems: 'center', marginTop: 'var(--space-2)' }}>
-                  <span>jury score <span className="muted small">(average of {snap.juryCount} {snap.juryCount === 1 ? 'juror' : 'jurors'})</span></span>
-                  <span><strong>{show(snap.juryAvg)}</strong> <span className="muted small">/ {JURY_MAX}</span></span>
-                </div>
-                <div className="row" style={{ alignItems: 'center', borderTop: '1px solid var(--border-subtle)', marginTop: 'var(--space-3)', paddingTop: 'var(--space-3)' }}>
-                  <strong>final score</strong>
-                  <span className={`big${finalTone ? ` tone-${finalTone}` : ''}`}>{show(snap.final)} <small>/ 100</small></span>
-                </div>
-                <div style={{ marginTop: 'var(--space-3)' }}><ScoreBar value={snap.final} max={100} /></div>
-                {snap.final === null && <p className="hint" style={{ marginTop: 'var(--space-2)' }}>the final score appears once the ecociate score is fed and at least one juror has scored.</p>}
               </section>
-              <section className="card" id="ecociate">
+              <section className="card accent" id="ecociate">
                 <h2>ecociate score and reasoning</h2>
                 <EcociateForm orgId={org.id} score={org.ecociateScore} remarks={org.ecociateRemarks ?? ''} />
               </section>
             <section className="card scroll" id="jury" style={{ padding: 0 }}>
-              <div style={{ padding: 'var(--space-5) var(--space-5) var(--space-3)' }}><h2 style={{ margin: 0 }}>jury scores by juror</h2><p className="hint" style={{ marginTop: 4 }}>each score is out of 10; the total is weighted out of {JURY_MAX}.</p></div>
+              <div style={{ padding: 'var(--space-5) var(--space-5) var(--space-3)' }}><h2 style={{ margin: 0 }}>scores by juror</h2><p className="hint" style={{ marginTop: 4 }}>each score is out of 10; the total is weighted out of {JURY_MAX}.</p></div>
               <table className="compact">
                 <thead>
                   <tr>
@@ -143,6 +128,25 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
                 </tbody>
               </table>
             </section>
+              <section className="card accent" id="final">
+                <h2>final score</h2>
+                <div className="final-row">
+                  <div>
+                    <div className="final-label">ecociate</div>
+                    <div className="final-val">{show(snap.ecociate)} <small>/ {ECOCIATE_MAX}</small></div>
+                  </div>
+                  <div>
+                    <div className="final-label">scores by juror <span className="muted">(average of {snap.juryCount} {snap.juryCount === 1 ? 'juror' : 'jurors'})</span></div>
+                    <div className="final-val">{show(snap.juryAvg)} <small>/ {JURY_MAX}</small></div>
+                  </div>
+                  <div>
+                    <div className="final-label">final score</div>
+                    <div className={`final-val${finalTone ? ` tone-${finalTone}` : ''}`}>{show(snap.final)} <small>/ 100</small></div>
+                  </div>
+                </div>
+                <div style={{ marginTop: 'var(--space-3)' }}><ScoreBar value={snap.final} max={100} /></div>
+                {snap.final === null && <p className="hint" style={{ marginTop: 'var(--space-2)' }}>the final score appears once the ecociate score is fed and at least one juror has scored.</p>}
+              </section>
             </div>
           </div>
         </div>

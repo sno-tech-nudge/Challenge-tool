@@ -8,6 +8,7 @@ import { PageBanner, Pill } from '@/components/ui';
 import { OrgPager } from '@/components/OrgPager';
 import { OrgDetails } from '@/components/OrgDetails';
 import { InternalQueries } from '@/components/InternalQueries';
+import { JurorNotes } from '@/components/JurorNotes';
 import { OrgDetailsHeading } from '@/components/OrgDetailsHeading';
 import { SidePanel } from '@/components/SidePanel';
 import { RubricGuide } from '@/components/RubricGuide';
@@ -27,6 +28,17 @@ export default async function JuryOrgPage({ params }: { params: { id: string } }
   const now = new Date();
   const phase = slotPhase(org.slotStart, org.slotEnd, now);
   const slot = slotLabel(org);
+  // what this juror typed last time without submitting (their own only)
+  let draft = null as null | { scores: Record<string, string>; remarks: Record<string, string>; verdict: string; comment: string; savedAt: string };
+  const savedDraft = org.reviewDrafts[0];
+  if (savedDraft) {
+    try {
+      const d = JSON.parse(savedDraft.data);
+      if (d && typeof d.scores === 'object' && typeof d.remarks === 'object') draft = { scores: d.scores, remarks: d.remarks, verdict: d.verdict ?? '', comment: d.comment ?? '', savedAt: savedDraft.updatedAt.toISOString() };
+    } catch {
+      draft = null;
+    }
+  }
 
   return (
     <Shell user={user}>
@@ -56,6 +68,8 @@ export default async function JuryOrgPage({ params }: { params: { id: string } }
               <h2>internal remarks</h2>
               <InternalQueries text={org.internalQueries} />
             </section>
+
+            <JurorNotes orgId={org.id} initial={org.jurorNotes[0]?.text ?? ''} />
 
           </div>
 
@@ -89,6 +103,7 @@ export default async function JuryOrgPage({ params }: { params: { id: string } }
               slotStart={org.slotStart?.toISOString() ?? null}
               slotEnd={org.slotEnd?.toISOString() ?? null}
               serverNow={now.toISOString()}
+              draft={draft}
             />
           </section>
           </div>

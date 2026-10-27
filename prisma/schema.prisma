@@ -20,7 +20,9 @@ model User {
   passwordHash String
   createdAt    DateTime @default(now())
 
-  scores JuryScore[]
+  scores       JuryScore[]
+  notes        JurorNote[]
+  reviewDrafts ReviewDraft[]
 }
 
 model Org {
@@ -50,6 +52,10 @@ model Org {
   // conversion here), plus reasoning. null = not fed yet.
   ecociateScore   Float?
   ecociateRemarks String?
+
+  // jurors' private notes and unsubmitted score drafts for this organisation
+  jurorNotes   JurorNote[]
+  reviewDrafts ReviewDraft[]
 
   // the organisation's factsheet (PDF), kept in its own table so it is never loaded with the org
   factsheet OrgFactsheet?
@@ -102,4 +108,30 @@ model OrgFactsheet {
   org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
   pdf       Bytes
   updatedAt DateTime @updatedAt
+}
+
+// A juror's private notes about one organisation. Only that juror ever reads them. Removed with the
+// juror or the organisation.
+model JurorNote {
+  orgId     String
+  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  jurorId   String
+  juror     User     @relation(fields: [jurorId], references: [id], onDelete: Cascade)
+  text      String
+  updatedAt DateTime @updatedAt
+
+  @@id([orgId, jurorId])
+}
+
+// Scores, remarks, verdict and comment a juror has typed but not submitted, saved automatically so
+// they can come back to it. JSON of { scores, remarks, verdict, comment }. Deleted on submit or clear.
+model ReviewDraft {
+  orgId     String
+  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  jurorId   String
+  juror     User     @relation(fields: [jurorId], references: [id], onDelete: Cascade)
+  data      String
+  updatedAt DateTime @updatedAt
+
+  @@id([orgId, jurorId])
 }

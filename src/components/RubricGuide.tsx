@@ -38,10 +38,8 @@ export function RubricGuide() {
       <h3>the six criteria</h3>
       {PARAMETERS.map((p, i) => (
         <div className="guide-item" key={p.key}>
-          <div className="row">
-            <strong>{i + 1}. {p.label}</strong>
-            <span className="pill">{p.weight}%</span>
-          </div>
+          <strong>{i + 1}. {p.label}</strong>
+          <p className="guide-weight"><span className="pill">weightage {p.weight}%</span></p>
           <h4>component questions</h4>
           <ul>{p.components.map((t) => <li key={t}>{t}</li>)}</ul>
           <h4>jury lens: scale and punt-ability</h4>

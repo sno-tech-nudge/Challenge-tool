@@ -14,6 +14,14 @@ export interface FormState {
   ok?: boolean;
 }
 
+/** What a juror has typed on the review form but not submitted. */
+export interface DraftData {
+  scores: Record<string, string>;
+  remarks: Record<string, string>;
+  verdict: string;
+  comment: string;
+}
+
 const verdictWord = (v: string | null) => (v === 'Y' ? 'yes' : v === 'N' ? 'no' : 'undecided');
 
 function refreshOrg(orgId: string) {
@@ -58,6 +66,8 @@ export async function submitReviewAction(_prev: FormState, formData: FormData): 
   const total = computeTotal(Object.fromEntries(entries.map((e) => [e.key, e.score])));
 
   const previous = await prisma.juryScore.findUnique({ where: { orgId_jurorId: { orgId, jurorId: user.id } }, select: { total: true } });
+  // a submitted review replaces any saved draft
+  await prisma.reviewDraft.deleteMany({ where: { orgId, jurorId: user.id } });
   await prisma.juryScore.upsert({
     where: { orgId_jurorId: { orgId, jurorId: user.id } },
     create: { orgId, jurorId: user.id, entries: JSON.stringify(entries), total, verdict, internalRemarks },
@@ -84,6 +94,7 @@ export async function clearReviewAction(orgId: string): Promise<FormState> {
     return { error: 'this slot has ended, so your submitted scores can no longer be changed' };
   }
   await prisma.juryScore.deleteMany({ where: { orgId, jurorId: user.id } });
+  await prisma.reviewDraft.deleteMany({ where: { orgId, jurorId: user.id } });
   if (existing) await logActivity({ actor: user, action: 'REVIEW_CLEARED', org: existing.org, detail: `was ${toJuryScale(existing.total)} / ${JURY_MAX}` });
   refreshOrg(orgId);
   return { ok: true };
@@ -144,4 +155,36 @@ export async function saveEcociateAction(_prev: FormState, formData: FormData): 
   }
   refreshOrg(orgId);
   return { ok: true };
+}
+
+/** A juror's private notes about an organisation. Saved as they type; an empty note is removed.
+ *  No page refresh is triggered, so typing is never interrupted. */
+export async function saveNoteAction(orgId: string, text: string): Promise<FormState> {
+  const user = await requireRole('JURY');
+  const clean = String(text ?? '').slice(0, 5000);
+  if (!(await prisma.org.count({ where: { id: orgId } }))) return { error: 'organisation not found' };
+  if (clean.trim() === '') await prisma.jurorNote.deleteMany({ where: { orgId, jurorId: user.id } });
+  else await prisma.jurorNote.upsert({ where: { orgId_jurorId: { orgId, jurorId: user.id } }, create: { orgId, jurorId: user.id, text: clean }, update: { text: clean } });
+  return { ok: true };
+}
+
+/** Saves what a juror has typed on the review form, without submitting it, so it is there when they
+ *  come back. Follows the same slot rules as submitting: nothing is saved while scoring is closed. */
+export async function saveDraftAction(orgId: string, draft: DraftData): Promise<FormState & { savedAt?: string }> {
+  const user = await requireRole('JURY');
+  const org = await prisma.org.findUnique({ where: { id: orgId }, select: { slotStart: true, slotEnd: true } });
+  if (!org) return { error: 'organisation not found' };
+  const hasReview = (await prisma.juryScore.count({ where: { orgId, jurorId: user.id } })) > 0;
+  if (!reviewAccess(slotPhase(org.slotStart, org.slotEnd, new Date()), hasReview).canSubmit) return { error: 'scoring is closed for this organisation' };
+
+  const str = (v: unknown, max: number) => String(v ?? '').slice(0, max);
+  const clean: DraftData = {
+    scores: Object.fromEntries(PARAMETERS.map((p) => [p.key, str(draft?.scores?.[p.key], 10)])),
+    remarks: Object.fromEntries(PARAMETERS.map((p) => [p.key, str(draft?.remarks?.[p.key], 2000)])),
+    verdict: draft?.verdict === 'Y' || draft?.verdict === 'N' ? draft.verdict : '',
+    comment: str(draft?.comment, 5000),
+  };
+  const data = JSON.stringify(clean);
+  await prisma.reviewDraft.upsert({ where: { orgId_jurorId: { orgId, jurorId: user.id } }, create: { orgId, jurorId: user.id, data }, update: { data } });
+  return { ok: true, savedAt: new Date().toISOString() };
 }

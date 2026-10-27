@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useFormState } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { submitReviewAction, clearReviewAction, type FormState } from '@/lib/actions';
+import { submitReviewAction, clearReviewAction, saveDraftAction, type DraftData, type FormState } from '@/lib/actions';
 import { PARAMETERS, SCORE_MIN, SCORE_MAX, SCORE_STEP, weightedPoints, computeTotal, type ScoreEntry } from '@/lib/rubric';
 import { JURY_MAX } from '@/lib/constants';
 import { toJuryScale } from '@/lib/scoring';
@@ -25,6 +25,7 @@ export function ReviewForm({
   slotStart,
   slotEnd,
   serverNow,
+  draft,
 }: {
   orgId: string;
   existing: ScoreEntry[];
@@ -33,6 +34,8 @@ export function ReviewForm({
   slotStart: string | null;
   slotEnd: string | null;
   serverNow: string;
+  /** what the juror typed last time without submitting, if anything */
+  draft: (DraftData & { savedAt: string }) | null;
 }) {
   const toast = useToast();
   const router = useRouter();
@@ -54,12 +57,13 @@ export function ReviewForm({
   })();
   const [state, action] = useFormState<FormState, FormData>(submitReviewAction, {});
   const byKey = new Map(existing.map((e) => [e.key, e]));
-  const initialScores = Object.fromEntries(PARAMETERS.map((p) => [p.key, byKey.has(p.key) ? String(byKey.get(p.key)!.score) : '']));
+  // a saved draft wins over the submitted review: it is what the juror was in the middle of
+  const initialScores = draft ? draft.scores : Object.fromEntries(PARAMETERS.map((p) => [p.key, byKey.has(p.key) ? String(byKey.get(p.key)!.score) : '']));
   const [scores, setScores] = React.useState<Record<string, string>>(initialScores);
-  const initialRemarks = Object.fromEntries(PARAMETERS.map((p) => [p.key, byKey.get(p.key)?.remarks ?? '']));
+  const initialRemarks = draft ? draft.remarks : Object.fromEntries(PARAMETERS.map((p) => [p.key, byKey.get(p.key)?.remarks ?? '']));
   const [remarks, setRemarks] = React.useState<Record<string, string>>(initialRemarks);
-  const [verdict, setVerdict] = React.useState<string>(existingVerdict ?? '');
-  const [internal, setInternal] = React.useState(existingRemarks);
+  const [verdict, setVerdict] = React.useState<string>(draft ? draft.verdict : existingVerdict ?? '');
+  const [internal, setInternal] = React.useState(draft ? draft.comment : existingRemarks);
   const [dirty, setDirty] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
   // the verdict segment sits under both panes of the page, so it is drawn into a slot there
@@ -72,6 +76,14 @@ export function ReviewForm({
   const confirmed = React.useRef(false);
   const [summaryOpen, setSummaryOpen] = React.useState(false);
   const [thanksOpen, setThanksOpen] = React.useState(false);
+  // typed but not submitted: kept as a draft, saved a moment after typing stops
+  const [restored, setRestored] = React.useState(Boolean(draft));
+  const [draftState, setDraftState] = React.useState<{ status: 'idle' | 'saving' | 'saved' | 'error'; at?: string }>(draft ? { status: 'saved', at: draft.savedAt } : { status: 'idle' });
+  const lastSent = React.useRef<string>(JSON.stringify({ scores, remarks, verdict, comment: internal }));
+  const latestDraft = React.useRef<DraftData>({ scores, remarks, verdict, comment: internal });
+  latestDraft.current = { scores, remarks, verdict, comment: internal };
+  const lockedRef = React.useRef(locked);
+  lockedRef.current = locked;
 
   const filled = PARAMETERS.filter((p) => scores[p.key] !== '').length;
   // same formula the server uses; the saved total is the weighted total out of 100
@@ -107,7 +119,9 @@ export function ReviewForm({
       // a saved review is acknowledged with the thank-you dialog; the person chooses when to go back to the list
       setThanksOpen(true);
       setDirty(false);
+      setRestored(false);
     } else if (state.error) {
+      lastSent.current = ''; // the next change saves the draft again
       toast(state.error, 'error');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -124,6 +138,31 @@ export function ReviewForm({
     return () => window.removeEventListener('beforeunload', warn);
   }, [dirty]);
 
+  // save the draft a moment after typing stops
+  React.useEffect(() => {
+    if (locked) return;
+    const payload: DraftData = { scores, remarks, verdict, comment: internal };
+    const json = JSON.stringify(payload);
+    if (json === lastSent.current) return;
+    setDirty(true);
+    const t = window.setTimeout(async () => {
+      if (json === lastSent.current) return;
+      setDraftState((d) => ({ ...d, status: 'saving' }));
+      const res = await saveDraftAction(orgId, payload);
+      if (res.ok) {
+        lastSent.current = json;
+        setDraftState({ status: 'saved', at: res.savedAt });
+        setDirty(false);
+      } else setDraftState((d) => ({ ...d, status: 'error' }));
+    }, 1000);
+    return () => window.clearTimeout(t);
+  }, [scores, remarks, verdict, internal, locked, orgId]);
+
+  // leaving the page (without a reload) with a draft not yet saved: save it now
+  React.useEffect(() => () => {
+    if (!lockedRef.current && JSON.stringify(latestDraft.current) !== lastSent.current) void saveDraftAction(orgId, latestDraft.current);
+  }, [orgId]);
+
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     if (locked) {
       e.preventDefault();
@@ -139,6 +178,7 @@ export function ReviewForm({
 
   function confirmSubmit() {
     confirmed.current = true;
+    lastSent.current = JSON.stringify({ scores, remarks, verdict, comment: internal }); // a pending draft save must not outlive the submit
     try { sessionStorage.setItem(pendingKey, String(Date.now())); } catch {}
     setSubmitting(true);
     setSummaryOpen(false);
@@ -156,6 +196,9 @@ export function ReviewForm({
       setVerdict('');
       setInternal('');
       setDirty(false);
+      setRestored(false);
+      setDraftState({ status: 'idle' });
+      lastSent.current = JSON.stringify({ scores: Object.fromEntries(PARAMETERS.map((p) => [p.key, ''])), remarks: Object.fromEntries(PARAMETERS.map((p) => [p.key, ''])), verdict: '', comment: '' });
       toast('review cleared');
       router.refresh();
     } else toast(res.error ?? 'could not clear review', 'error');
@@ -166,6 +209,7 @@ export function ReviewForm({
       <form id={FORM_ID} ref={formRef} action={action} onSubmit={onSubmit} onChange={() => setDirty(true)}>
         <input type="hidden" name="orgId" value={orgId} />
         {slotNote && <p className={`slot-note${locked ? ' locked' : ''}`} role="status">{slotNote}</p>}
+        {restored && !locked && <p className="slot-note" role="status">your saved draft has been restored. it is not submitted until you press submit.</p>}
         {PARAMETERS.map((p, i) => {
           const n = Number(scores[p.key]) || 0;
           const pct = Math.min(100, (n / SCORE_MAX) * 100);
@@ -221,6 +265,14 @@ export function ReviewForm({
             </div>
             <div className="small muted">{filled} of {PARAMETERS.length} scored</div>
           </div>
+          {!locked && (
+            <p className="hint draft-status" aria-live="polite">
+              {draftState.status === 'saving' && 'saving your draft…'}
+              {draftState.status === 'saved' && draftState.at && `draft saved ${formatMoment(new Date(draftState.at))}. you can leave and come back to finish.`}
+              {draftState.status === 'error' && 'your draft could not be saved. check your connection; what you typed is still here.'}
+              {draftState.status === 'idle' && 'what you type is saved as a draft, so you can leave and come back to finish.'}
+            </p>
+          )}
           <p className="hint" style={{ marginTop: 'var(--space-2)' }}>when all six are scored, give your final verdict at the bottom of the page and submit.</p>
         </div>
       </form>
@@ -291,6 +343,7 @@ export function ReviewForm({
         }
         confirmLabel="yes"
         cancelLabel="no"
+        confirmFirst
         onConfirm={confirmSubmit}
         onCancel={() => setSummaryOpen(false)}
       />

@@ -13,6 +13,7 @@ export function ConfirmDialog({
   danger,
   busy,
   wide,
+  confirmFirst,
   onConfirm,
   onCancel,
 }: {
@@ -24,6 +25,8 @@ export function ConfirmDialog({
   danger?: boolean;
   busy?: boolean;
   wide?: boolean;
+  /** Put the confirm button before the cancel button (for a yes / no pair, yes comes first). */
+  confirmFirst?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }) {
@@ -36,7 +39,7 @@ export function ConfirmDialog({
       <div ref={ref} className={`dialog${wide ? ' wide' : ''}`} role="alertdialog" aria-modal="true" aria-labelledby={titleId}>
         <h2 id={titleId}>{title}</h2>
         <div className="small" style={{ color: 'var(--text-secondary)' }}>{body}</div>
-        <div className="dialog-actions">
+        <div className="dialog-actions" style={confirmFirst ? { flexDirection: 'row-reverse', justifyContent: 'flex-start' } : undefined}>
           <button type="button" className="btn secondary" onClick={onCancel} data-autofocus>{cancelLabel}</button>
           <button type="button" className={`btn${danger ? ' danger' : ''}`} onClick={onConfirm} disabled={busy}>
             {busy ? 'working…' : confirmLabel}
