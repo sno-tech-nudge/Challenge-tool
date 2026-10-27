@@ -16,7 +16,6 @@ export default async function JuryList() {
       <PageBanner
         eyebrow="the aahaar bazaar challenge · jury review"
         title="organisations"
-        subtitle={`${done} of ${orgs.length} reviewed by you. organisations are listed in slot order; open one to read about it and score it once its slot has started.`}
       />
       <div className="wrap">
         <JuryTable orgs={orgs} done={done} serverNow={new Date().toISOString()} />
