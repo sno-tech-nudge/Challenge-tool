@@ -36,7 +36,7 @@ export function Shell({ user, children }: { user: User; children: React.ReactNod
             <span className="who-name" title={user.name}>{user.name}</span>
             <span className="pill">{isAdmin ? 'admin' : 'jury'}</span>
             <form action={logoutAction}>
-              <button type="submit" className="btn ghost sm">
+              <button type="submit" className="btn ghost sm" aria-label="log out">
                 <LogOut size={14} strokeLinejoin="miter" strokeLinecap="square" />
                 <span className="btn-label">log out</span>
               </button>

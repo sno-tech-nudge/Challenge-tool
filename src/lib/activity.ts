@@ -48,13 +48,14 @@ export async function listActivity(opts: { action?: string; actor?: string; page
   const [rows, total, actors] = await Promise.all([
     prisma.activityLog.findMany({ where, orderBy: { at: 'desc' }, skip: (page - 1) * PAGE_SIZE, take: PAGE_SIZE }),
     prisma.activityLog.count({ where }),
-    prisma.activityLog.groupBy({ by: ['actorId', 'actorName'], orderBy: { actorName: 'asc' } }),
+    // one entry per person, under the name they have now (a renamed person must not appear twice)
+    prisma.activityLog.findMany({ distinct: ['actorId'], orderBy: { at: 'desc' }, select: { actorId: true, actorName: true } }),
   ]);
   return {
     rows,
     total,
     page,
     pages: Math.max(1, Math.ceil(total / PAGE_SIZE)),
-    actors: actors.filter((a) => a.actorId) as { actorId: string; actorName: string }[],
+    actors: (actors.filter((a) => a.actorId) as { actorId: string; actorName: string }[]).sort((x, y) => x.actorName.localeCompare(y.actorName, 'en', { sensitivity: 'base' })),
   };
 }

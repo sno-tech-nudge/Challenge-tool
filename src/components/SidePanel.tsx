@@ -27,7 +27,7 @@ export function SidePanel({
 
   return (
     <>
-      <button type="button" className={triggerClass} onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open}>
+      <button type="button" className={triggerClass} onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open} aria-label={label}>
         {icon}
         <span className="btn-label">{label}</span>
       </button>

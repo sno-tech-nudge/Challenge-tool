@@ -78,7 +78,7 @@ Organisation content lives in the database (`Org.details`, a JSON of `{ sectionK
   ```
 
   Rows are matched by `key`. Only the fields present in the file are written, so an import never wipes a verdict, a jury score or an Ecociate score entered in the app.
-- `scripts/xlsx-to-orgs.py` was a one-off converter for the first data sheet. The sheet layout has changed since, so treat it as a reference rather than a tool.
+- The organisation content comes from the team's data sheet. It was converted into `data/orgs.json` once per sheet update, and the old converter script has been removed because the sheet layout keeps changing.
 
 ### Org fact sheets (PDF)
 

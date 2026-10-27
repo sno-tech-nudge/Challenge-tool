@@ -101,28 +101,24 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
                         const e = byJuror.get(j.id)?.entries.get(p.key);
                         return (
                           <td key={j.id} className="num">
-                            {e ? (
-                              <span className="score-cell">
-                                {e.score}
-                                {e.remarks && <RemarkTip text={e.remarks} juror={j.name} />}
-                              </span>
-                            ) : (
-                              <span className="muted">-</span>
-                            )}
+                            <span className="score-cell">
+                              {e ? e.score : <span className="muted">-</span>}
+                              {e?.remarks ? <RemarkTip text={e.remarks} juror={j.name} /> : <span className="remark-spacer" aria-hidden="true" />}
+                            </span>
                           </td>
                         );
                       })}
                     </tr>
                   ))}
-                  <tr style={{ background: 'var(--surface-tint)' }}>
+                  <tr className="total-row">
                     <td><strong>total (weighted)</strong></td><td className="num muted">{JURY_MAX}</td>
-                    {jurors.map((j) => { const t = byJuror.get(j.id)?.total; return <td key={j.id} className="num"><strong>{t === undefined ? '-' : toJuryScale(t)}</strong></td>; })}
+                    {jurors.map((j) => { const t = byJuror.get(j.id)?.total; return <td key={j.id} className="num"><span className="score-cell"><strong>{t === undefined ? '-' : toJuryScale(t)}</strong><span className="remark-spacer" aria-hidden="true" /></span></td>; })}
                   </tr>
                   <tr>
                     <td><strong>final verdict</strong></td><td className="num muted" />
                     {jurors.map((j) => {
                       const v = byJuror.get(j.id)?.verdict;
-                      return <td key={j.id} className="num">{v ? <Pill tone={v === 'Y' ? 'good' : 'bad'}>{v === 'Y' ? 'yes' : 'no'}</Pill> : <span className="muted">-</span>}</td>;
+                      return <td key={j.id} className="num"><span className="score-cell">{v ? <Pill tone={v === 'Y' ? 'good' : 'bad'}>{v === 'Y' ? 'yes' : 'no'}</Pill> : <span className="muted">-</span>}<span className="remark-spacer" aria-hidden="true" /></span></td>;
                     })}
                   </tr>
                 </tbody>
@@ -134,14 +130,17 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
                   <div>
                     <div className="final-label">ecociate</div>
                     <div className="final-val">{show(snap.ecociate)} <small>/ {ECOCIATE_MAX}</small></div>
+                    <div className="final-note">M&amp;E findings</div>
                   </div>
                   <div>
-                    <div className="final-label">scores by juror <span className="muted">(average of {snap.juryCount} {snap.juryCount === 1 ? 'juror' : 'jurors'})</span></div>
+                    <div className="final-label">scores by juror</div>
                     <div className="final-val">{show(snap.juryAvg)} <small>/ {JURY_MAX}</small></div>
+                    <div className="final-note">average of {snap.juryCount} {snap.juryCount === 1 ? 'juror' : 'jurors'}</div>
                   </div>
                   <div>
                     <div className="final-label">final score</div>
                     <div className={`final-val${finalTone ? ` tone-${finalTone}` : ''}`}>{show(snap.final)} <small>/ 100</small></div>
+                    <div className="final-note">ecociate + scores by juror</div>
                   </div>
                 </div>
                 <div style={{ marginTop: 'var(--space-3)' }}><ScoreBar value={snap.final} max={100} /></div>

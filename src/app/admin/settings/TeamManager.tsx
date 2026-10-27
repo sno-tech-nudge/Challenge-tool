@@ -163,7 +163,7 @@ export function TeamManager({ members, currentUserId }: { members: Member[]; cur
                     <SidePanel label="edit / reset password" title={`edit ${m.name}`} icon={<><Pencil {...icon} /><KeyRound {...icon} /></>}>
                       {(close) => <EditMemberForm member={m} close={close} />}
                     </SidePanel>
-                    <button type="button" className="btn danger sm" onClick={() => setRemoving(m)} disabled={m.id === currentUserId} title={m.id === currentUserId ? 'you cannot remove yourself' : 'remove member'}>
+                    <button type="button" className="btn danger sm" onClick={() => setRemoving(m)} disabled={m.id === currentUserId} title={m.id === currentUserId ? 'you cannot remove yourself' : 'remove member'} aria-label={`remove ${m.name}`}>
                       <Trash2 {...icon} /> <span className="btn-label">remove</span>
                     </button>
                   </div>
