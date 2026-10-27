@@ -74,13 +74,6 @@ export default async function JuryOrgPage({ params }: { params: { id: string } }
           <div className="stack">
           <section className="card accent" id="review">
             <h2>start review</h2>
-            <p className="hint" style={{ marginBottom: 'var(--space-4)' }}>
-              score all 6 criteria.{' '}
-              {org.slotStart
-                ? 'scoring opens when the slot starts and stays open afterwards, but once the slot has ended the scores you submitted can no longer be changed.'
-                : 'you can come back and edit your scores at any time.'}{' '}
-              please use the scoring guide in the top bar to go through the scoring rubric.
-            </p>
             <ReviewForm
               orgId={org.id}
               existing={mine ? parseEntries(mine.entries) : []}
