@@ -374,11 +374,7 @@ table.compact td .pre { max-width: 90px; }
   -webkit-mask-image: linear-gradient(to right, transparent 0, #000 22%); mask-image: linear-gradient(to right, transparent 0, #000 22%); }
 .login-shade { position: absolute; inset: 0; background: linear-gradient(to right, rgba(60, 0, 0, 0.35) 0, rgba(60, 0, 0, 0) 55%); pointer-events: none; }
 .login-content { position: relative; z-index: 1; height: 100%; width: min(540px, 46vw); min-width: 340px; padding: clamp(20px, 4.5vh, 48px) clamp(24px, 4vw, 64px); display: flex; flex-direction: column; justify-content: space-between; gap: clamp(10px, 2vh, 24px); container-type: inline-size; }
-.dp-logo { display: flex; align-items: baseline; font-size: clamp(28px, 4.2vh, 44px); font-weight: var(--fw-regular); letter-spacing: -0.02em; line-height: 1; }
-/* the caret is a heavier chevron that sits between the x-height and the ascenders, tucked close to the letters */
-.dp-caret { width: 0.56em; height: 0.32em; margin: 0 0.01em; vertical-align: baseline; align-self: baseline; position: relative; top: -0.26em; flex-shrink: 0; }
-.dp-the, .dp-delta { font-weight: 500; }
-.dp-prize { margin-left: 0.28em; font-weight: var(--fw-light); }
+.dp-logo { display: block; height: clamp(26px, 4.6vh, 42px); width: auto; max-width: 100%; align-self: flex-start; }
 .dp-headline { display: flex; flex-direction: column; letter-spacing: -0.025em; --s: max(40px, min(21cqw, calc((100vh - 470px) / 3.8))); text-shadow: 0 2px 24px rgba(60, 0, 0, 0.35); }
 .dp-small { font-size: calc(var(--s) * 0.42); font-weight: var(--fw-light); line-height: 1; margin-bottom: 0.2em; }
 .dp-big { font-size: var(--s); font-weight: 600; line-height: 0.98; }
