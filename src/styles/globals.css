@@ -377,7 +377,8 @@ table.compact td .pre { max-width: 90px; }
 .dp-logo { display: flex; align-items: baseline; font-size: clamp(28px, 4.2vh, 44px); font-weight: var(--fw-regular); letter-spacing: -0.02em; line-height: 1; }
 /* the caret is a heavier chevron that sits between the x-height and the ascenders, tucked close to the letters */
 .dp-caret { width: 0.56em; height: 0.32em; margin: 0 0.01em; vertical-align: baseline; align-self: baseline; position: relative; top: -0.26em; flex-shrink: 0; }
-.dp-prize { margin-left: 0.28em; }
+.dp-the, .dp-delta { font-weight: 500; }
+.dp-prize { margin-left: 0.28em; font-weight: var(--fw-light); }
 .dp-headline { display: flex; flex-direction: column; letter-spacing: -0.025em; --s: max(40px, min(21cqw, calc((100vh - 470px) / 3.8))); text-shadow: 0 2px 24px rgba(60, 0, 0, 0.35); }
 .dp-small { font-size: calc(var(--s) * 0.42); font-weight: var(--fw-light); line-height: 1; margin-bottom: 0.2em; }
 .dp-big { font-size: var(--s); font-weight: 600; line-height: 0.98; }
@@ -385,14 +386,21 @@ table.compact td .pre { max-width: 90px; }
 .dp-tagline { font-size: clamp(14px, 2.2vh, 20px); font-weight: var(--fw-semibold); line-height: 1.3; margin: 0; max-width: 24em; }
 .login-card { background: var(--surface-card, var(--surface-canvas)); color: var(--text-primary); border: 1px solid var(--border-subtle); padding: clamp(16px, 3vh, 28px); box-shadow: 0 18px 48px rgba(40, 0, 0, 0.35); }
 .login-card h1 { font-size: clamp(22px, 3.4vh, 28px); text-transform: lowercase; margin: 0; }
-.login-card p { margin: 4px 0 clamp(10px, 2vh, 18px); }
+.login-card > p { margin: 4px 0 clamp(10px, 2vh, 18px); }
 @media (max-width: 860px), (max-aspect-ratio: 1/1) {
   .login-photo { inset: 0; width: 100%; height: 100%; aspect-ratio: auto; background-position: 70% 100%; -webkit-mask-image: none; mask-image: none; }
   .login-shade { background: linear-gradient(to bottom, rgba(60, 0, 0, 0.78) 0, rgba(60, 0, 0, 0.55) 100%); }
   .login-content { width: 100%; min-width: 0; max-width: 520px; margin: 0 auto; }
   .dp-headline { --s: max(34px, min(17cqw, calc((100vh - 470px) / 3.8))); }
 }
-@media (max-height: 640px) { .dp-tagline { display: none; } }
+@media (max-height: 760px) {
+  .login-card { padding: 14px 18px; }
+  .login-card > p { display: none; }
+  .login-card h1 { margin-bottom: 8px; }
+  .login-card .stack { gap: 8px; }
+  .login-card input { padding-top: 7px; padding-bottom: 7px; }
+}
+@media (max-height: 560px) { .dp-tagline { display: none; } }
 
 /* ---------- organisation details: one tidy block per heading ---------- */
 .od-nav { position: sticky; top: var(--header-h); z-index: 2; display: flex; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; gap: 6px; margin: 0 calc(-1 * var(--space-5)) 0; padding: 10px var(--space-5); background: var(--surface-card); border-bottom: 1px solid var(--border-subtle); }
