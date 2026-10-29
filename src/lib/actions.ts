@@ -192,6 +192,20 @@ export async function getNoteAction(orgId: string): Promise<string> {
   return note?.text ?? '';
 }
 
+/** The juror's saved draft for one organisation, read fresh so a cached page never shows an old one. */
+export async function getDraftAction(orgId: string): Promise<(DraftData & { savedAt: string }) | null> {
+  const user = await requireRole('JURY');
+  const row = await prisma.reviewDraft.findUnique({ where: { orgId_jurorId: { orgId, jurorId: user.id } } });
+  if (!row) return null;
+  try {
+    const d = JSON.parse(row.data);
+    if (!d || typeof d.scores !== 'object' || typeof d.remarks !== 'object') return null;
+    return { scores: d.scores, remarks: d.remarks, verdict: d.verdict ?? '', comment: d.comment ?? '', savedAt: row.updatedAt.toISOString() };
+  } catch {
+    return null;
+  }
+}
+
 /** Saves what a juror has typed on the review form, without submitting it, so it is there when they
  *  come back. Follows the same slot rules as submitting: nothing is saved while scoring is closed. */
 export async function saveDraftAction(orgId: string, draft: DraftData): Promise<FormState & { savedAt?: string }> {

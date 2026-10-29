@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useFormState } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { submitReviewAction, clearReviewAction, saveDraftAction, discardDraftAction, type DraftData, type FormState } from '@/lib/actions';
+import { submitReviewAction, clearReviewAction, saveDraftAction, getDraftAction, discardDraftAction, type DraftData, type FormState } from '@/lib/actions';
 import { PARAMETERS, SCORE_MIN, SCORE_MAX, SCORE_STEP, weightedPoints, computeTotal, type ScoreEntry } from '@/lib/rubric';
 import { JURY_MAX } from '@/lib/constants';
 import { toJuryScale } from '@/lib/scoring';
@@ -145,29 +145,70 @@ export function ReviewForm({
     return () => window.removeEventListener('beforeunload', warn);
   }, [dirty]);
 
-  // save the draft a moment after typing stops
+  // save the draft a moment after typing stops. Until the server has it, a copy is kept in this tab, and a
+  // failed save is tried again every few seconds.
+  const backupKey = `review-draft:${orgId}`;
+  const [retry, setRetry] = React.useState(0);
   React.useEffect(() => {
     if (readOnly) return;
     const payload: DraftData = { scores, remarks, verdict, comment: internal };
     const json = JSON.stringify(payload);
     if (json === lastSent.current) return;
     setDirty(true);
+    try { sessionStorage.setItem(backupKey, json); } catch { /* storage unavailable */ }
     const t = window.setTimeout(async () => {
       if (json === lastSent.current) return;
       setDraftState((d) => ({ ...d, status: 'saving' }));
-      const res = await saveDraftAction(orgId, payload);
+      let res: { ok?: boolean; savedAt?: string } = {};
+      try { res = await saveDraftAction(orgId, payload); } catch { /* network error: retried below */ }
       if (res.ok) {
         lastSent.current = json;
+        try { sessionStorage.removeItem(backupKey); } catch { /* storage unavailable */ }
         setDraftState({ status: 'saved', at: res.savedAt });
         setDirty(false);
-      } else setDraftState((d) => ({ ...d, status: 'error' }));
-    }, 1000);
+        setRetry(0);
+      } else {
+        setDraftState((d) => ({ ...d, status: 'error' }));
+        window.setTimeout(() => setRetry((n) => n + 1), 5000);
+      }
+    }, retry === 0 ? 1000 : 0);
     return () => window.clearTimeout(t);
-  }, [scores, remarks, verdict, internal, readOnly, orgId]);
+  }, [scores, remarks, verdict, internal, readOnly, orgId, retry]);
 
-  // leaving the page (without a reload) with a draft not yet saved: save it now
-  React.useEffect(() => () => {
-    if (!lockedRef.current && JSON.stringify(latestDraft.current) !== lastSent.current) void saveDraftAction(orgId, latestDraft.current);
+  // on opening: bring back text that never reached the server (tab closed mid-typing), and show the draft that
+  // is really saved, since the page itself may come from the browser's cache (back button)
+  React.useEffect(() => {
+    if (readOnly) return;
+    const apply = (d: DraftData) => {
+      setScores(d.scores); setRemarks(d.remarks); setVerdict(d.verdict); setInternal(d.comment);
+      setRestored(true);
+    };
+    let local: DraftData | null = null;
+    try { local = JSON.parse(sessionStorage.getItem(backupKey) ?? 'null'); } catch { /* ignore */ }
+    if (local && typeof local.scores === 'object' && typeof local.remarks === 'object' && JSON.stringify(local) !== lastSent.current) {
+      apply(local);
+      return;
+    }
+    void getDraftAction(orgId).then((fresh) => {
+      if (!fresh || JSON.stringify(latestDraft.current) !== lastSent.current) return; // nothing saved, or already typing
+      const d: DraftData = { scores: fresh.scores, remarks: fresh.remarks, verdict: fresh.verdict, comment: fresh.comment };
+      if (JSON.stringify(d) === lastSent.current) return;
+      lastSent.current = JSON.stringify(d);
+      apply(d);
+      setDraftState({ status: 'saved', at: fresh.savedAt });
+      setDirty(false);
+      if (hasReview) setRescoring(true);
+    }).catch(() => undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // leaving the page (navigating away, closing the tab) with a draft not yet saved: save it now
+  React.useEffect(() => {
+    const flush = () => {
+      if (!lockedRef.current && JSON.stringify(latestDraft.current) !== lastSent.current) void saveDraftAction(orgId, latestDraft.current);
+    };
+    window.addEventListener('pagehide', flush);
+    return () => { window.removeEventListener('pagehide', flush); flush(); };
   }, [orgId]);
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -187,7 +228,7 @@ export function ReviewForm({
     confirmed.current = true;
     submitKind.current = hasReview ? 'rescore' : 'first';
     lastSent.current = JSON.stringify({ scores, remarks, verdict, comment: internal }); // a pending draft save must not outlive the submit
-    try { sessionStorage.setItem(pendingKey, `${Date.now()}|${submitKind.current}`); } catch {}
+    try { sessionStorage.setItem(pendingKey, `${Date.now()}|${submitKind.current}`); sessionStorage.removeItem(backupKey); } catch {}
     setSubmitting(true);
     setSummaryOpen(false);
     formRef.current?.requestSubmit();
@@ -195,6 +236,7 @@ export function ReviewForm({
 
   async function clearReview() {
     setClearing(true);
+    try { sessionStorage.removeItem(backupKey); } catch {}
     const res = await clearReviewAction(orgId);
     setClearing(false);
     setConfirmClear(false);
@@ -234,6 +276,7 @@ export function ReviewForm({
     setDirty(false);
     setDraftState({ status: 'idle' });
     lastSent.current = JSON.stringify({ scores: s, remarks: r, verdict: existingVerdict ?? '', comment: existingRemarks });
+    try { sessionStorage.removeItem(backupKey); } catch {}
     await discardDraftAction(orgId);
   }
 
