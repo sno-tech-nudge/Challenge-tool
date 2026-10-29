@@ -339,6 +339,8 @@ select:hover { border-color: var(--accent-600); }
 .overview .value { font-size: 28px; font-weight: var(--fw-black); line-height: 1.15; font-variant-numeric: tabular-nums; }
 .overview .note { font-size: var(--fs-small); color: var(--text-secondary); }
 .overview .jurors { padding: var(--space-4) var(--space-6); min-width: 0; }
+.overview .jurors-export { display: flex; align-items: center; gap: var(--space-3) var(--space-4); flex-wrap: wrap; margin-top: var(--space-4); padding-top: var(--space-3); border-top: 1px solid var(--border-subtle); }
+.overview .jurors-export .hint { margin: 0; }
 .overview .jurors-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2) var(--space-6); margin-top: var(--space-2); }
 .overview .juror { display: grid; grid-template-columns: 64px minmax(0, 1fr) 34px; align-items: center; gap: var(--space-3); font-size: var(--fs-small); }
 .overview .juror .bar { min-width: 0; }

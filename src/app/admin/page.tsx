@@ -50,6 +50,10 @@ export default async function AdminSnapshot() {
               ))}
               {progress.length === 0 && <p className="muted small">no jurors yet.</p>}
             </div>
+            <div className="jurors-export">
+              <a className="btn secondary" href="/api/jury-export" download>download notes and scores (csv)</a>
+              <span className="hint">every juror&apos;s notes, plus their scores and remarks per criterion once submitted.</span>
+            </div>
           </div>
         </section>
 
