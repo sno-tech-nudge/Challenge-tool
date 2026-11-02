@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Search, ChevronRight } from 'lucide-react';
 import { JURY_MAX } from '@/lib/constants';
+import { PARAMETERS } from '@/lib/rubric';
 import { toJuryScale } from '@/lib/scoring';
 import { Pill, ScoreBar } from '@/components/ui';
 import { slotPhase } from '@/lib/slots';
@@ -18,6 +19,7 @@ interface Row {
   slotEnd: string | null;
   sector: string | null;
   myTotal: number | null;
+  draft: { filled: number; total: number } | null;
 }
 
 type Filter = 'all' | 'todo' | 'done';
@@ -84,6 +86,8 @@ export function JuryTable({ orgs, done, serverNow }: { orgs: Row[]; done: number
                     <Pill>opening…</Pill>
                   ) : o.myTotal !== null ? (
                     <Pill tone="good">scored</Pill>
+                  ) : o.draft ? (
+                    <Pill tone="warn">draft saved</Pill>
                   ) : slotPhase(o.slotStart ? new Date(o.slotStart) : null, o.slotEnd ? new Date(o.slotEnd) : null, now) === 'before' ? (
                     <Pill>not open yet</Pill>
                   ) : (
@@ -91,7 +95,12 @@ export function JuryTable({ orgs, done, serverNow }: { orgs: Row[]; done: number
                   )}
                 </td>
                 <td className="num">
-                  {o.myTotal === null ? <span className="muted">-</span> : (
+                  {o.myTotal === null && o.draft ? (
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'flex-end' }}>
+                      <strong>{toJuryScale(o.draft.total)}</strong><span className="muted">/ {JURY_MAX}</span>
+                      <span className="small muted">draft, {o.draft.filled} of {PARAMETERS.length} marked</span>
+                    </div>
+                  ) : o.myTotal === null ? <span className="muted">-</span> : (
                     <div style={{ display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'flex-end' }}>
                       <ScoreBar value={toJuryScale(o.myTotal)} max={JURY_MAX} />
                       <strong>{toJuryScale(o.myTotal)}</strong><span className="muted">/ {JURY_MAX}</span>

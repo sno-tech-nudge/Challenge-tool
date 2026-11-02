@@ -1,5 +1,6 @@
 import { prisma } from './db';
 import { snapshot } from './scoring';
+import { PARAMETERS, SCORE_MIN, SCORE_MAX, computeTotal } from './rubric';
 import { compareBySlot, slotLabel } from './slots';
 
 /** Alphabetical, ignoring case, so a name like "bettrlabs" sits among the others. The database sorts
@@ -8,6 +9,24 @@ const byName = (a: { name: string }, b: { name: string }) => a.name.localeCompar
 
 /** Jury list: every org, plus only THIS juror's own total. Other jurors' scores never leave the
  *  server on a jury route. */
+/** What a saved draft holds: how many criteria have a mark, and the weighted total of those marks. */
+function draftSummary(data: string | undefined): { filled: number; total: number } | null {
+  if (!data) return null;
+  try {
+    const d = JSON.parse(data);
+    const marks: Record<string, number> = {};
+    for (const p of PARAMETERS) {
+      const raw = d?.scores?.[p.key];
+      const n = Number(raw);
+      if (raw !== undefined && raw !== '' && Number.isFinite(n) && n >= SCORE_MIN && n <= SCORE_MAX) marks[p.key] = n;
+    }
+    const filled = Object.keys(marks).length;
+    return filled ? { filled, total: computeTotal(marks) } : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function listOrgsForJuror(jurorId: string) {
   const orgs = (await prisma.org.findMany({
     select: {
@@ -18,15 +37,18 @@ export async function listOrgsForJuror(jurorId: string) {
       slotEnd: true,
       sector: true,
       scores: { where: { jurorId }, select: { total: true } },
+      reviewDrafts: { where: { jurorId }, select: { data: true } },
     },
   })).sort(compareBySlot);
   // earliest slot first; the dates travel to the browser as text
-  return orgs.map(({ scores, slotStart, slotEnd, slot, ...o }) => ({
+  return orgs.map(({ scores, reviewDrafts, slotStart, slotEnd, slot, ...o }) => ({
     ...o,
     slot: slotLabel({ slot, slotStart, slotEnd }),
     slotStart: slotStart?.toISOString() ?? null,
     slotEnd: slotEnd?.toISOString() ?? null,
     myTotal: scores[0]?.total ?? null,
+    // marks typed but not submitted yet (only meaningful while there is no submitted review)
+    draft: draftSummary(reviewDrafts[0]?.data),
   }));
 }
 
