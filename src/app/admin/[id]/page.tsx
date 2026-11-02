@@ -83,6 +83,32 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
                 <h2>ecociate score and reasoning</h2>
                 <EcociateForm orgId={org.id} score={org.ecociateScore} remarks={org.ecociateRemarks ?? ''} />
               </section>
+              <section className="card accent" id="final">
+                <h2>final score</h2>
+                <div className="final-row">
+                  <div>
+                    <div className="final-label">ecociate</div>
+                    <div className="final-val">{show(snap.ecociate)} <small>/ {ECOCIATE_MAX}</small></div>
+                    <div className="final-note">M&amp;E findings</div>
+                  </div>
+                  <div>
+                    <div className="final-label">scores by juror</div>
+                    <div className="final-val">{show(snap.juryAvg)} <small>/ {JURY_MAX}</small></div>
+                    <div className="final-note">average of {snap.juryCount} {snap.juryCount === 1 ? 'juror' : 'jurors'}</div>
+                  </div>
+                  <div>
+                    <div className="final-label">final score</div>
+                    <div className={`final-val${finalTone ? ` tone-${finalTone}` : ''}`}>{show(snap.final)} <small>/ 100</small></div>
+                    <div className="final-note">ecociate + scores by juror</div>
+                  </div>
+                </div>
+                <div style={{ marginTop: 'var(--space-3)' }}><ScoreBar value={snap.final} max={100} /></div>
+                {snap.final === null && <p className="hint" style={{ marginTop: 'var(--space-2)' }}>the final score appears once the ecociate score is fed and at least one juror has scored.</p>}
+              </section>
+            </div>
+          </div>
+        </div>
+
             <section className="card scroll" id="jury" style={{ padding: 0 }}>
               <div style={{ padding: 'var(--space-5) var(--space-5) var(--space-3)' }}><h2 style={{ margin: 0 }}>scores by juror</h2><p className="hint" style={{ marginTop: 4 }}>each score is out of 10; the total is weighted out of {JURY_MAX}.</p></div>
               <table className="compact">
@@ -124,31 +150,6 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
                 </tbody>
               </table>
             </section>
-              <section className="card accent" id="final">
-                <h2>final score</h2>
-                <div className="final-row">
-                  <div>
-                    <div className="final-label">ecociate</div>
-                    <div className="final-val">{show(snap.ecociate)} <small>/ {ECOCIATE_MAX}</small></div>
-                    <div className="final-note">M&amp;E findings</div>
-                  </div>
-                  <div>
-                    <div className="final-label">scores by juror</div>
-                    <div className="final-val">{show(snap.juryAvg)} <small>/ {JURY_MAX}</small></div>
-                    <div className="final-note">average of {snap.juryCount} {snap.juryCount === 1 ? 'juror' : 'jurors'}</div>
-                  </div>
-                  <div>
-                    <div className="final-label">final score</div>
-                    <div className={`final-val${finalTone ? ` tone-${finalTone}` : ''}`}>{show(snap.final)} <small>/ 100</small></div>
-                    <div className="final-note">ecociate + scores by juror</div>
-                  </div>
-                </div>
-                <div style={{ marginTop: 'var(--space-3)' }}><ScoreBar value={snap.final} max={100} /></div>
-                {snap.final === null && <p className="hint" style={{ marginTop: 'var(--space-2)' }}>the final score appears once the ecociate score is fed and at least one juror has scored.</p>}
-              </section>
-            </div>
-          </div>
-        </div>
 
             <section className="card accent verdict-wide" id="verdict">
               <h2>final verdict</h2>
