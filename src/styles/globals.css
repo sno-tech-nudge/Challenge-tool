@@ -197,7 +197,7 @@ th button.sort:focus-visible { outline: 2px solid var(--focus-ring); }
 input, textarea, select { font: inherit; font-size: 14px; color: var(--text-primary); background: var(--surface-card); border: 1px solid var(--border-strong); padding: 8px 10px; min-height: 38px; }
 input:focus, textarea:focus, select:focus { border-color: var(--accent-600); }
 textarea { width: 100%; min-height: 68px; resize: vertical; }
-input[type='number'] { width: 92px; }
+input[type='number'] { width: 104px; }
 input[type='radio'], input[type='checkbox'] { min-height: 0; accent-color: var(--accent-700); width: 16px; height: 16px; }
 label { display: block; font-size: var(--fs-caption); font-weight: var(--fw-semibold); color: var(--text-secondary); margin-bottom: 4px; }
 .btn { white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 38px; padding: 0 16px; font: inherit; font-weight: var(--fw-bold); font-size: var(--fs-small); text-transform: lowercase; cursor: pointer; border: 1px solid var(--action); background: var(--action); color: var(--action-text); text-decoration: none; transition: background 120ms var(--ease); }
@@ -563,7 +563,10 @@ table.summary th { padding: 6px 12px; }
 /* the slot note above the scoring form: when scoring opens, or that the slot has ended */
 .slot-note { margin: 0 0 var(--space-4); padding: var(--space-3) var(--space-4); border-left: 3px solid var(--accent-600); background: var(--surface-tint); color: var(--text-primary); font-size: var(--fs-small); font-weight: var(--fw-semibold); line-height: 1.5; }
 .slot-note.locked { border-left-color: var(--status-warn); }
-input:disabled, textarea:disabled { opacity: 0.6; cursor: not-allowed; }
+input:disabled, textarea:disabled { opacity: 0.85; cursor: not-allowed; -webkit-text-fill-color: var(--text-primary); }
+/* a locked review (scoring not open yet, or already submitted) stays fully readable: Safari and phones fade disabled boxes until the numbers vanish */
+input[readonly], textarea[readonly] { cursor: default; background: var(--surface-tint); color: var(--text-primary); -webkit-text-fill-color: var(--text-primary); opacity: 1; }
+input[type='number'][readonly] { font-weight: var(--fw-bold); }
 
 /* a titled group of points, such as one kind of proposed partnership */
 .od-group + .od-group { margin-top: var(--space-4); }

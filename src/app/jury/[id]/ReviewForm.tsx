@@ -316,7 +316,7 @@ export function ReviewForm({
                     max={SCORE_MAX}
                     step={SCORE_STEP}
                     required
-                    disabled={readOnly}
+                    readOnly={readOnly}
                     className={invalid(p.key) ? 'field-error' : undefined}
                     aria-invalid={invalid(p.key)}
                     value={scores[p.key]}
@@ -326,7 +326,7 @@ export function ReviewForm({
                 </div>
                 <div style={{ flex: '1 1 200px' }}>
                   <label htmlFor={`remarks_${p.key}`}>remarks</label>
-                  <textarea id={`remarks_${p.key}`} name={`remarks_${p.key}`} disabled={readOnly} value={remarks[p.key]} onChange={(e) => setRemarks({ ...remarks, [p.key]: e.target.value })} style={{ minHeight: 38 }} />
+                  <textarea id={`remarks_${p.key}`} name={`remarks_${p.key}`} readOnly={readOnly} value={remarks[p.key]} onChange={(e) => setRemarks({ ...remarks, [p.key]: e.target.value })} style={{ minHeight: 38 }} />
                 </div>
               </div>
               {invalid(p.key) && <p className="err">enter a score from {SCORE_MIN} to {SCORE_MAX} (whole or half points)</p>}
@@ -371,7 +371,7 @@ export function ReviewForm({
             </div>
             <div>
               <label htmlFor="internalRemarks">comment section (required)</label>
-              <textarea id="internalRemarks" name="internalRemarks" form={FORM_ID} disabled={readOnly} value={internal} onChange={(e) => setInternal(e.target.value)} required placeholder="the reasoning behind your scores and verdict" />
+              <textarea id="internalRemarks" name="internalRemarks" form={FORM_ID} readOnly={readOnly} value={internal} onChange={(e) => setInternal(e.target.value)} required placeholder="the reasoning behind your scores and verdict" />
               <p className="hint" style={{ marginTop: 4 }}>shown to the admin team with your review.</p>
             </div>
           </div>
