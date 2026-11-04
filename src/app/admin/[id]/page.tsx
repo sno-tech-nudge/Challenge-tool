@@ -26,7 +26,7 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
 
   const snap = snapshot(org.ecociateScore, org.scores.map((s) => s.total));
   // one column per juror account, so a juror who has not scored yet still shows as an empty column
-  const byJuror = new Map(org.scores.map((s) => [s.jurorId, { total: s.total, rescored: s.rescoreCount > 0, verdict: s.verdict, entries: new Map(parseEntries(s.entries).map((e) => [e.key, e])) }]));
+  const byJuror = new Map(org.scores.map((s) => [s.jurorId, { total: s.total, rescored: s.rescoreCount > 0, verdict: s.verdict, comment: s.internalRemarks, entries: new Map(parseEntries(s.entries).map((e) => [e.key, e])) }]));
   // jurors who submitted again with rescore: the admin is told here
   const rescored = org.scores.filter((s) => s.rescoreCount > 0 && s.rescoredAt);
   const finalTone = snap.final === null ? null : scoreTone(snap.final, 100);
@@ -138,7 +138,7 @@ export default async function AdminOrgPage({ params }: { params: { id: string } 
                   ))}
                   <tr className="total-row">
                     <td><strong>total (weighted)</strong></td><td className="num muted">{JURY_MAX}</td>
-                    {jurors.map((j) => { const t = byJuror.get(j.id)?.total; return <td key={j.id} className="num"><span className="score-cell"><strong>{t === undefined ? '-' : toJuryScale(t)}</strong><span className="remark-spacer" aria-hidden="true" /></span></td>; })}
+                    {jurors.map((j) => { const t = byJuror.get(j.id)?.total; const c = byJuror.get(j.id)?.comment; return <td key={j.id} className="num"><span className="score-cell"><strong>{t === undefined ? '-' : toJuryScale(t)}</strong>{c ? <RemarkTip text={c} juror={`${j.name} (final comment)`} /> : <span className="remark-spacer" aria-hidden="true" />}</span></td>; })}
                   </tr>
                   <tr>
                     <td><strong>final verdict</strong></td><td className="num muted" />
