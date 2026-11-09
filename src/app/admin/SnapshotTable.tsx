@@ -26,7 +26,7 @@ type Sort = { key: string; dir: 'asc' | 'desc' };
 
 /** Ecociate : jury, as percentages. 60 : 40 is how the final score is worked out everywhere else. */
 const PRESETS = [60, 50, 40];
-const show = (n: number | null) => (n === null ? '-' : String(n));
+const show = (n: number | null) => (n === null ? '-' : n.toFixed(1));
 const clampPct = (n: number) => Math.min(100, Math.max(0, Math.round(n)));
 
 /** The whole snapshot: one line per organisation with every number that goes into its score. The organisation
@@ -40,28 +40,12 @@ export function SnapshotTable({ rows, jurors }: { rows: Row[]; jurors: Juror[] }
   const [custom, setCustom] = React.useState<number | null>(null); // an extra weighting typed by the admin
   const [customText, setCustomText] = React.useState('');
 
-  const weights = custom !== null && !PRESETS.includes(custom) ? [...PRESETS, custom] : PRESETS;
-
-  // rank of every organisation for each weighting (1 = best; equal scores share a rank)
-  const ranks = React.useMemo(() => {
-    const out: Record<number, Map<string, number>> = {};
-    for (const w of weights) {
-      const scored = rows.map((r) => ({ id: r.id, f: finalAtWeight(r.ecociateScore, r.juryAvg100, w) })).filter((x): x is { id: string; f: number } => x.f !== null);
-      const m = new Map<string, number>();
-      for (const x of scored) m.set(x.id, 1 + scored.filter((y) => y.f > x.f).length);
-      out[w] = m;
-    }
-    return out;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rows, custom]);
-
   const value = (r: Row, key: string): string | number | null => {
     if (key === 'name') return r.name;
     if (key === 'eco') return ecociateOn100(r.ecociateScore);
     if (key === 'avg') return r.juryAvg;
     if (key.startsWith('j:')) return r.jurors[key.slice(2)]?.total ?? null;
-    if (key.startsWith('f:')) return finalAtWeight(r.ecociateScore, r.juryAvg100, Number(key.slice(2)));
-    if (key.startsWith('r:')) return ranks[Number(key.slice(2))]?.get(r.id) ?? null;
+    if (key === 'final') return finalAtWeight(r.ecociateScore, r.juryAvg100, sel);
     return null;
   };
 
@@ -94,7 +78,6 @@ export function SnapshotTable({ rows, jurors }: { rows: Row[]; jurors: Juror[] }
       </button>
     </th>
   );
-  const selCls = (w: number) => (w === sel ? 'col-sel' : undefined);
 
   function applyCustom(text: string) {
     setCustomText(text);
@@ -121,18 +104,18 @@ export function SnapshotTable({ rows, jurors }: { rows: Row[]; jurors: Juror[] }
           <label htmlFor="sort-by">sort by</label>
           <select
             id="sort-by"
-            value={sort.key === 'name' || sort.key === `f:${sel}` ? `${sort.key === 'name' ? 'name' : 'final'}:${sort.dir}` : 'column'}
+            value={sort.key === 'name' || sort.key === 'final' ? `${sort.key}:${sort.dir}` : 'column'}
             onChange={(e) => {
               if (e.target.value === 'column') return;
               const [k, dir] = e.target.value.split(':');
-              setSort({ key: k === 'name' ? 'name' : `f:${sel}`, dir: dir as 'asc' | 'desc' });
+              setSort({ key: k === 'name' ? 'name' : 'final', dir: dir as 'asc' | 'desc' });
             }}
           >
             <option value="name:asc">alphabetical (A to Z)</option>
             <option value="name:desc">alphabetical (Z to A)</option>
             <option value="final:desc">score (high to low)</option>
             <option value="final:asc">score (low to high)</option>
-            {!(sort.key === 'name' || sort.key === `f:${sel}`) && <option value="column">by column</option>}
+            {!(sort.key === 'name' || sort.key === 'final') && <option value="column">by column</option>}
           </select>
         </div>
       </div>
@@ -151,7 +134,7 @@ export function SnapshotTable({ rows, jurors }: { rows: Row[]; jurors: Juror[] }
           custom, ecociate %
           <input id="custom-weight" type="number" min={0} max={100} step={5} inputMode="numeric" value={customText} placeholder="e.g. 70" onChange={(e) => applyCustom(e.target.value)} onWheel={(e) => e.currentTarget.blur()} />
         </label>
-        <span className="hint">all weightings are shown below; the highlighted one drives the score sort.</span>
+        <span className="hint">the table shows the final score for the weighting you pick.</span>
       </div>
 
       <div className="card scroll" style={{ padding: 0 }}>
@@ -163,8 +146,7 @@ export function SnapshotTable({ rows, jurors }: { rows: Row[]; jurors: Juror[] }
               {jurors.map((j) => <Head key={j.id} k={`j:${j.id}`} num>{j.name} /40</Head>)}
               <Head k="avg" num>jury avg /40</Head>
               <th className="num">jurors</th>
-              {weights.map((w) => <Head key={`f${w}`} k={`f:${w}`} num cls={selCls(w)}>final {w} : {100 - w}<small className="head-sub">/100</small></Head>)}
-              {weights.map((w) => <Head key={`r${w}`} k={`r:${w}`} num cls={selCls(w)}>rank {w} : {100 - w}</Head>)}
+              <Head k="final" num cls="col-sel"><span>final /100<small className="head-sub">{sel} : {100 - sel}</small></span></Head>
               <th>verdict</th>
             </tr>
           </thead>
@@ -175,19 +157,18 @@ export function SnapshotTable({ rows, jurors }: { rows: Row[]; jurors: Juror[] }
                   {r.rescored > 0 && <span className="rescored-tag" title={`${r.rescored} juror${r.rescored === 1 ? '' : 's'} rescored this organisation`}>rescored</span>}</td>
                 <td className="num">{show(ecociateOn100(r.ecociateScore))}</td>
                 {jurors.map((j) => (
-                  <td key={j.id} className="num">{r.jurors[j.id] ? r.jurors[j.id].total : <span className="muted">-</span>}</td>
+                  <td key={j.id} className="num">{r.jurors[j.id] ? r.jurors[j.id].total.toFixed(1) : <span className="muted">-</span>}</td>
                 ))}
                 <td className="num">{show(r.juryAvg)}</td>
                 <td className="num">{r.juryCount} / {Math.max(EXPECTED_JURORS, jurors.length)}</td>
-                {weights.map((w) => {
-                  const f = finalAtWeight(r.ecociateScore, r.juryAvg100, w);
-                  return <td key={`f${w}`} className={`num${w === sel ? ' col-sel' : ''}`}><strong className={f === null ? undefined : `tone-${scoreTone(f, 100)}`}>{show(f)}</strong></td>;
-                })}
-                {weights.map((w) => <td key={`r${w}`} className={`num${w === sel ? ' col-sel' : ''}`}>{ranks[w]?.get(r.id) ?? <span className="muted">-</span>}</td>)}
+                {(() => {
+                  const f = finalAtWeight(r.ecociateScore, r.juryAvg100, sel);
+                  return <td className="num col-sel"><strong className={f === null ? undefined : `tone-${scoreTone(f, 100)}`}>{show(f)}</strong></td>;
+                })()}
                 <td>{r.verdict ? <Pill tone={r.verdict === 'Y' ? 'good' : 'bad'}>{r.verdict === 'Y' ? 'yes' : 'no'}</Pill> : <span className="muted small">undecided</span>}</td>
               </tr>
             ))}
-            {visible.length === 0 && <tr><td colSpan={7 + jurors.length + weights.length * 2} className="muted" style={{ textAlign: 'center', padding: 32 }}>no organisations match.</td></tr>}
+            {visible.length === 0 && <tr><td colSpan={6 + jurors.length} className="muted" style={{ textAlign: 'center', padding: 32 }}>no organisations match.</td></tr>}
           </tbody>
         </table>
       </div>
