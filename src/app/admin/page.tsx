@@ -1,18 +1,19 @@
 import { requireRole } from '@/lib/auth/session';
 import Link from 'next/link';
-import { listSnapshot, jurorProgress, recentRescores } from '@/lib/queries';
+import { listSnapshot, jurorProgress, recentRescores, listJurors } from '@/lib/queries';
 import { formatMoment } from '@/lib/slots';
 import { toJuryScale } from '@/lib/scoring';
 import { ECOCIATE_MAX, JURY_MAX } from '@/lib/constants';
 import { Shell } from '@/components/Shell';
 import { PageBanner } from '@/components/ui';
 import { SnapshotTable } from './SnapshotTable';
+import { VerdictGrid } from './VerdictGrid';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminSnapshot() {
   const user = await requireRole('ADMIN');
-  const [rows, progress, rescores] = await Promise.all([listSnapshot(), jurorProgress(), recentRescores()]);
+  const [rows, progress, rescores, jurors] = await Promise.all([listSnapshot(), jurorProgress(), recentRescores(), listJurors()]);
 
   const scored = rows.filter((r) => r.final !== null);
   const decided = rows.filter((r) => r.verdict).length;
@@ -75,7 +76,9 @@ export default async function AdminSnapshot() {
           </section>
         )}
 
-        <SnapshotTable rows={rows} />
+        <SnapshotTable rows={rows} jurors={jurors} />
+
+        <VerdictGrid rows={rows} jurors={jurors} />
       </div>
     </Shell>
   );

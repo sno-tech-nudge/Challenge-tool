@@ -1,5 +1,5 @@
 import { prisma } from './db';
-import { snapshot } from './scoring';
+import { snapshot, toJuryScale } from './scoring';
 import { PARAMETERS, SCORE_MIN, SCORE_MAX, computeTotal } from './rubric';
 import { compareBySlot, slotLabel } from './slots';
 
@@ -79,16 +79,24 @@ export async function getOrgForJuror(orgId: string, jurorId: string) {
 
 export async function listSnapshot() {
   const orgs = (await prisma.org.findMany({
-    include: { scores: { select: { total: true, rescoredAt: true } } },
+    include: { scores: { select: { jurorId: true, total: true, rescoredAt: true, verdict: true, internalRemarks: true } } },
   })).sort(byName);
-  return orgs.map((o) => ({
-    id: o.id,
-    name: o.name,
-    slot: slotLabel(o),
-    verdict: o.verdict,
-    rescored: o.scores.filter((s) => s.rescoredAt).length,
-    ...snapshot(o.ecociateScore, o.scores.map((s) => s.total)),
-  }));
+  return orgs.map((o) => {
+    const totals = o.scores.map((s) => s.total);
+    return {
+      id: o.id,
+      name: o.name,
+      slot: slotLabel(o),
+      verdict: o.verdict,
+      rescored: o.scores.filter((s) => s.rescoredAt).length,
+      // the unrounded parts, so any weighting can be worked out in the browser
+      ecociateScore: o.ecociateScore,
+      juryAvg100: totals.length ? totals.reduce((a, b) => a + b, 0) / totals.length : null,
+      // each juror's own result for this organisation, keyed by juror id (total shown out of 40)
+      jurors: Object.fromEntries(o.scores.map((s) => [s.jurorId, { total: toJuryScale(s.total), verdict: s.verdict, comment: s.internalRemarks, rescored: s.rescoredAt !== null }])),
+      ...snapshot(o.ecociateScore, totals),
+    };
+  });
 }
 
 export async function getOrgForAdmin(orgId: string) {

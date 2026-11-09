@@ -30,3 +30,16 @@ export function snapshot(ecociate: number | null, juryTotals: number[]): Snapsho
 export const toJuryScale = (raw: number) => round1((raw * JURY_MAX) / JURY_RAW_MAX);
 
 export const fmt = (n: number | null, dash = '-') => (n === null ? dash : String(n));
+
+/** Final score out of 100 when the ecociate score counts for `ecociatePct` percent and the jury for the rest.
+ *  Both parts are first put on a scale of 100 (the ecociate score is stored out of 60, a juror's total out of 100).
+ *  60 / 40 gives the same number as the final score everywhere else. Null until both parts exist. */
+export function finalAtWeight(ecociate: number | null, juryAvg100: number | null, ecociatePct: number): number | null {
+  if (ecociate === null || juryAvg100 === null) return null;
+  const e100 = (Math.min(Math.max(ecociate, 0), ECOCIATE_MAX) / ECOCIATE_MAX) * 100;
+  const w = Math.min(Math.max(ecociatePct, 0), 100) / 100;
+  return round1(w * e100 + (1 - w) * juryAvg100);
+}
+
+/** The ecociate score on a scale of 100, for showing next to the juror scores. */
+export const ecociateOn100 = (ecociate: number | null) => (ecociate === null ? null : round1((ecociate / ECOCIATE_MAX) * 100));

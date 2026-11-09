@@ -614,3 +614,24 @@ table.compact td.num { font-variant-numeric: tabular-nums; }
 .rescore-card ul { list-style: none; margin: var(--space-3) 0 0; padding: 0; display: grid; gap: var(--space-2); }
 .rescore-card li { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); justify-content: space-between; padding-top: var(--space-2); border-top: 1px solid var(--border-subtle); font-size: var(--fs-small); }
 .rescore-card li a { font-weight: var(--fw-bold); }
+
+/* snapshot: organisation names stay in view while the numbers scroll; the chosen weighting is tinted */
+table.snap th, table.snap td { padding: 10px 12px; white-space: nowrap; }
+table.snap th:first-child, table.snap td:first-child { min-width: 220px; max-width: 280px; white-space: normal; position: sticky; left: 0; z-index: 1; background: var(--surface-card); box-shadow: 1px 0 0 var(--border-subtle); }
+table.snap th:first-child { background: var(--surface-tint); z-index: 2; }
+table.snap tbody tr.clickable:hover td:first-child { background: var(--surface-tint); }
+table.snap th.num { white-space: normal; min-width: 76px; line-height: 1.25; vertical-align: bottom; }
+table.snap td.num { font-variant-numeric: tabular-nums; }
+table.snap .head-sub { display: block; font-weight: var(--fw-regular); letter-spacing: 0; text-transform: none; color: var(--text-muted); }
+table.snap th.col-sel { background: color-mix(in srgb, var(--action) 14%, var(--surface-tint)); }
+table.snap td.col-sel { background: color-mix(in srgb, var(--action) 8%, transparent); }
+table.snap tr.total-row td { background: var(--surface-tint); }
+table.verdicts td.vcell { text-align: center; font-weight: var(--fw-semibold); }
+table.verdicts td.vcell .score-cell { justify-content: center; }
+table.verdicts td.v-yes { background: color-mix(in srgb, var(--status-good) 18%, transparent); color: var(--good-text); }
+table.verdicts td.v-no { background: color-mix(in srgb, var(--status-bad) 16%, transparent); color: var(--text-primary); }
+.weighting { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); margin: 0 0 var(--space-4); }
+.weighting .label { font-size: var(--fs-caption); font-weight: var(--fw-bold); letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-secondary); }
+.weighting .hint { margin: 0; }
+.custom-weight { display: inline-flex; align-items: center; gap: var(--space-2); margin: 0; font-size: var(--fs-small); color: var(--text-secondary); }
+.custom-weight input { width: 84px; min-height: 34px; padding: 4px 8px; }
