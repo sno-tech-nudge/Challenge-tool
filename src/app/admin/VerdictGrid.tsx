@@ -19,10 +19,6 @@ export function VerdictGrid({ rows, jurors }: { rows: Row[]; jurors: { id: strin
     return b.juryAvg - a.juryAvg;
   });
   const count = (r: Row, v: 'Y' | 'N') => jurors.filter((j) => r.jurors[j.id]?.verdict === v).length;
-  const perJuror = jurors.map((j) => ({
-    yes: rows.filter((r) => r.jurors[j.id]?.verdict === 'Y').length,
-    no: rows.filter((r) => r.jurors[j.id]?.verdict === 'N').length,
-  }));
 
   return (
     <section className="card" id="verdicts" style={{ padding: 0 }} aria-label="verdicts by juror">
@@ -62,11 +58,6 @@ export function VerdictGrid({ rows, jurors }: { rows: Row[]; jurors: { id: strin
                 <td>{r.verdict ? <Pill tone={r.verdict === 'Y' ? 'good' : 'bad'}>{r.verdict === 'Y' ? 'yes' : 'no'}</Pill> : <span className="muted small">undecided</span>}</td>
               </tr>
             ))}
-            <tr className="total-row">
-              <td><strong>yes / no given by juror</strong></td>
-              {perJuror.map((p, i) => <td key={jurors[i].id} className="num"><strong>{p.yes}</strong> <span className="muted">/ {p.no}</span></td>)}
-              <td className="num" /><td className="num" /><td />
-            </tr>
           </tbody>
         </table>
       </div>
